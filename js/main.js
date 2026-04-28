@@ -1,40 +1,47 @@
-// 绫月乃萝粉丝站 - 主脚本
+// 绫月乃萝 Fan Site — main.js
 
-// ===== 导航 =====
-window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
+// ===== 侧边导航 =====
+const navToggle = document.getElementById('navToggle');
+const sideNav = document.getElementById('sideNav');
+
+navToggle.addEventListener('click', () => {
+    sideNav.classList.toggle('open');
+});
+
+// 点击导航链接后关闭菜单
+document.querySelectorAll('.nav-menu a').forEach(link => {
+    link.addEventListener('click', () => {
+        sideNav.classList.remove('open');
+    });
+});
+
+// 点击外部关闭
+document.addEventListener('click', (e) => {
+    if (sideNav.classList.contains('open') && !sideNav.contains(e.target)) {
+        sideNav.classList.remove('open');
     }
 });
 
-const hamburger = document.querySelector('.hamburger');
-const navLinks = document.querySelector('.nav-links');
-hamburger.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-});
-
+// 平滑滚动
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
             target.scrollIntoView({ behavior: 'smooth' });
-            navLinks.classList.remove('active');
         }
     });
 });
 
 // 导航高亮
 const sections = document.querySelectorAll('section');
-const navItems = document.querySelectorAll('.nav-links a');
+const navItems = document.querySelectorAll('.nav-menu a');
+
 window.addEventListener('scroll', () => {
     let current = '';
     sections.forEach(section => {
         const sectionTop = section.offsetTop;
-        if (scrollY >= sectionTop - 200) {
+        if (scrollY >= sectionTop - 300) {
             current = section.getAttribute('id');
         }
     });
@@ -46,56 +53,78 @@ window.addEventListener('scroll', () => {
     });
 });
 
-// ===== 轮播 Slider =====
-let slideIndex = 0;
-const slider = document.getElementById('slider');
-const slides = document.querySelectorAll('.slide');
-const dotsContainer = document.getElementById('dots');
-
-if (slides.length > 0) {
-    // 创建 dots
-    slides.forEach((_, i) => {
-        const dot = document.createElement('span');
-        dot.className = 'dot' + (i === 0 ? ' active' : '');
-        dot.onclick = () => goToSlide(i);
-        dotsContainer.appendChild(dot);
+// ===== 滚动动画 =====
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+            // 交错延迟
+            const delay = Array.from(entry.target.parentNode.children).indexOf(entry.target) * 100;
+            setTimeout(() => {
+                entry.target.classList.add('visible');
+            }, Math.min(delay, 600));
+        }
     });
-}
+}, { threshold: 0.1 });
 
-function updateSlider() {
-    if (!slider) return;
-    slider.style.transform = `translateX(-${slideIndex * 100}%)`;
-    document.querySelectorAll('.dot').forEach((dot, i) => {
-        dot.classList.toggle('active', i === slideIndex);
+document.querySelectorAll('.masonry-item, .video-card, .game-card, .profile-content').forEach(el => {
+    observer.observe(el);
+});
+
+// ===== Lightbox (点击放大) =====
+const lightbox = document.createElement('div');
+lightbox.className = 'lightbox';
+lightbox.innerHTML = '<img src="" alt=""><button class="lightbox-close">&times;</button>';
+document.body.appendChild(lightbox);
+
+const lightboxStyle = document.createElement('style');
+lightboxStyle.textContent = `
+    .lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(0,0,0,0.95);
+        align-items: center;
+        justify-content: center;
+        cursor: zoom-out;
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img {
+        max-width: 90vw;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+    .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.3s;
+    }
+    .lightbox-close:hover { opacity: 1; }
+`;
+document.head.appendChild(lightboxStyle);
+
+document.querySelectorAll('.masonry-item img').forEach(img => {
+    img.addEventListener('click', () => {
+        lightbox.querySelector('img').src = img.src;
+        lightbox.classList.add('active');
     });
-}
+});
 
-function nextSlide() {
-    slideIndex = (slideIndex + 1) % slides.length;
-    updateSlider();
-}
+lightbox.addEventListener('click', () => {
+    lightbox.classList.remove('active');
+});
 
-function prevSlide() {
-    slideIndex = (slideIndex - 1 + slides.length) % slides.length;
-    updateSlider();
-}
-
-function goToSlide(index) {
-    slideIndex = index;
-    updateSlider();
-}
-
-// 自动播放
-let autoPlay = setInterval(nextSlide, 4000);
-
-// 鼠标悬停暂停
-const sliderEl = document.querySelector('.works-slider');
-if (sliderEl) {
-    sliderEl.addEventListener('mouseenter', () => clearInterval(autoPlay));
-    sliderEl.addEventListener('mouseleave', () => {
-        autoPlay = setInterval(nextSlide, 4000);
-    });
-}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') lightbox.classList.remove('active');
+});
 
 // ===== 游戏系统 =====
 let currentGame = null;
@@ -127,29 +156,29 @@ function initMemoryGame(container) {
     }
     container.innerHTML = `
         <div class="game-header">
-            <h3>🃏 记忆翻牌</h3>
-            <div class="score">得分: <span id="score">0</span> | 步数: <span id="moves">0</span></div>
+            <h3>MEMORY</h3>
+            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="score">0</span> | Moves: <span id="moves">0</span></div>
             <button class="close-game" onclick="closeGame()">×</button>
         </div>
-        <div class="memory-game" id="memoryGame"></div>
+        <div id="memoryGame" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:400px;margin:20px auto;"></div>
     `;
     const game = document.getElementById('memoryGame');
-    game.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:400px;margin:20px auto;';
     let flippedCards = [], matchedPairs = 0, moves = 0, canFlip = true;
     cards.forEach((emoji, index) => {
         const card = document.createElement('div');
-        card.className = 'memory-card';
         card.dataset.emoji = emoji;
         card.dataset.index = index;
-        card.innerHTML = '<div class="card-front">?</div><div class="card-back">' + emoji + '</div>';
-        card.style.cssText = 'aspect-ratio:1;background:linear-gradient(135deg,#9b59b6,#ff69b4);border-radius:10px;cursor:pointer;position:relative;transform-style:preserve-3d;transition:transform 0.5s;';
+        card.innerHTML = `<div style="aspect-ratio:1;background:linear-gradient(135deg,rgba(200,162,232,0.2),rgba(255,126,179,0.2));border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:all 0.4s;transform-style:preserve-3d;">${emoji}</div>`;
+        card.querySelector('div').style.color = 'transparent';
         card.addEventListener('click', () => flipCard(card));
         game.appendChild(card);
     });
     function flipCard(card) {
-        if (!canFlip || flippedCards.includes(card) || card.classList.contains('flipped')) return;
-        card.style.transform = 'rotateY(180deg)';
-        card.classList.add('flipped');
+        if (!canFlip || flippedCards.includes(card) || card.dataset.matched) return;
+        const inner = card.querySelector('div');
+        inner.style.color = 'var(--text)';
+        inner.style.background = 'rgba(200,162,232,0.1)';
+        card.dataset.flipped = 'true';
         flippedCards.push(card);
         if (flippedCards.length === 2) {
             moves++;
@@ -159,24 +188,28 @@ function initMemoryGame(container) {
     }
     function checkMatch() {
         canFlip = false;
-        const [card1, card2] = flippedCards;
-        if (card1.dataset.emoji === card2.dataset.emoji) {
+        const [c1, c2] = flippedCards;
+        if (c1.dataset.emoji === c2.dataset.emoji) {
             matchedPairs++;
             document.getElementById('score').textContent = matchedPairs * 10;
+            c1.dataset.matched = '1';
+            c2.dataset.matched = '1';
             flippedCards = [];
             canFlip = true;
             if (matchedPairs === cards.length / 2) {
-                setTimeout(() => alert('🎉 恭喜通关！用时 ' + moves + ' 步'), 300);
+                setTimeout(() => alert('🎉 通关！ ' + moves + ' 步'), 300);
             }
         } else {
             setTimeout(() => {
-                card1.style.transform = 'rotateY(0)';
-                card2.style.transform = 'rotateY(0)';
-                card1.classList.remove('flipped');
-                card2.classList.remove('flipped');
+                [c1, c2].forEach(c => {
+                    const inner = c.querySelector('div');
+                    inner.style.color = 'transparent';
+                    inner.style.background = 'linear-gradient(135deg,rgba(200,162,232,0.2),rgba(255,126,179,0.2))';
+                    delete c.dataset.flipped;
+                });
                 flippedCards = [];
                 canFlip = true;
-            }, 1000);
+            }, 800);
         }
     }
 }
@@ -186,42 +219,43 @@ function initCatchGame(container) {
     currentGame = 'catch';
     container.innerHTML = `
         <div class="game-header">
-            <h3>⭐ 接星星</h3>
-            <div class="score">得分: <span id="catchScore">0</span></div>
+            <h3>CATCH</h3>
+            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="catchScore">0</span></div>
             <button class="close-game" onclick="closeGame()">×</button>
         </div>
-        <canvas id="gameCanvas" width="500" height="400"></canvas>
+        <canvas id="gameCanvas" width="480" height="360" style="display:block;margin:0 auto;border-radius:8px;border:1px solid var(--border);"></canvas>
+        <p style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:10px">← → 键移动</p>
     `;
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     let score = 0, frameCount = 0;
-    const player = { x: 225, y: 350, width: 50, height: 50, emoji: '🎨' };
+    const player = { x: 215, y: 310, width: 50, height: 50 };
     let stars = [], keys = {};
     document.addEventListener('keydown', e => keys[e.key] = true);
     document.addEventListener('keyup', e => keys[e.key] = false);
     function gameLoop() {
         if (!currentGame || currentGame !== 'catch') return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#1a1a2e';
+        ctx.fillStyle = '#0a0a0f';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        if (keys['ArrowLeft'] && player.x > 0) player.x -= 7;
-        if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += 7;
-        ctx.font = '40px Arial';
+        if (keys['ArrowLeft'] && player.x > 0) player.x -= 6;
+        if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += 6;
+        ctx.font = '36px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(player.emoji, player.x + player.width/2, player.y + 35);
-        if (frameCount % 40 === 0) {
-            stars.push({ x: Math.random() * (canvas.width - 30), y: 0, speed: 2 + Math.random() * 3, emoji: '⭐' });
+        ctx.fillText('🎨', player.x + 25, player.y + 35);
+        if (frameCount % 35 === 0) {
+            stars.push({ x: Math.random() * (canvas.width - 30), y: 0, speed: 2 + Math.random() * 2.5 });
         }
-        stars.forEach((star, index) => {
+        stars.forEach((star, i) => {
             star.y += star.speed;
-            ctx.font = '30px Arial';
-            ctx.fillText(star.emoji, star.x + 15, star.y + 25);
-            if (star.y + 25 > player.y && star.y < player.y + player.height && star.x + 15 > player.x && star.x < player.x + player.width) {
-                stars.splice(index, 1);
+            ctx.font = '24px Arial';
+            ctx.fillText('⭐', star.x + 15, star.y + 20);
+            if (star.y + 20 > player.y && star.y < player.y + player.height && star.x + 15 > player.x && star.x < player.x + player.width) {
+                stars.splice(i, 1);
                 score++;
                 document.getElementById('catchScore').textContent = score;
             }
-            if (star.y > canvas.height) stars.splice(index, 1);
+            if (star.y > canvas.height) stars.splice(i, 1);
         });
         frameCount++;
         if (currentGame === 'catch') requestAnimationFrame(gameLoop);
@@ -237,32 +271,31 @@ function initQuizGame(container) {
         { q: '乃萝的Twitter ID是？', a: ['@nora_vtuber', '@Ayatsuki_Nora', '@nora_draw'], correct: 1 },
         { q: '乃萝的职业是？', a: ['纯画师', '纯主播', '兼职画师和主播'], correct: 2 },
         { q: '乃萝的Pixiv ID是？', a: ['36966416', '12345678', '99999999'], correct: 0 },
-        { q: '乃萝的粉丝称呼是？', a: ['月民', '猫猫', '画家'], correct: 0 },
     ];
     let currentQuestion = 0, score = 0;
     container.innerHTML = `
         <div class="game-header">
-            <h3>❓ 乃萝问答</h3>
-            <div class="score">得分: <span id="quizScore">0</span> | 第 <span id="qNum">1</span> 题</div>
+            <h3>QUIZ</h3>
+            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="quizScore">0</span> | <span id="qNum">1</span>/${questions.length}</div>
             <button class="close-game" onclick="closeGame()">×</button>
         </div>
-        <div id="quizContent" style="text-align:center;padding:20px;"></div>
+        <div id="quizContent" style="text-align:center;padding:20px;max-width:500px;margin:0 auto;"></div>
     `;
     showQuestion();
     function showQuestion() {
         const content = document.getElementById('quizContent');
         if (currentQuestion >= questions.length) {
-            content.innerHTML = `<h2 style="color:#ffb6c1;margin-bottom:20px;">🎉 答题完成！</h2>
-                <p style="font-size:1.5rem;margin-bottom:30px;">最终得分: ${score} / ${questions.length}</p>
-                <button onclick="initQuizGame(document.getElementById('gameContainer'))" style="padding:15px 30px;background:linear-gradient(135deg,#ffb6c1,#9b59b6);border:none;border-radius:25px;color:white;font-size:1rem;cursor:pointer;">再玩一次</button>`;
+            content.innerHTML = `<h3 style="margin-bottom:20px;color:var(--accent)">完成！</h3>
+                <p style="font-size:1.3rem;margin-bottom:30px">${score} / ${questions.length}</p>
+                <button onclick="initQuizGame(document.getElementById('gameContainer'))" style="padding:12px 30px;background:transparent;border:1px solid var(--accent);border-radius:50px;color:var(--accent);cursor:pointer;font-family:var(--font-en)">RETRY</button>`;
             return;
         }
         document.getElementById('qNum').textContent = currentQuestion + 1;
         const q = questions[currentQuestion];
         let buttons = q.a.map((answer, i) =>
-            `<button onclick="checkAnswer(${i})" style="display:block;width:100%;max-width:300px;margin:10px auto;padding:15px;background:rgba(255,255,255,0.1);border:2px solid #9b59b6;border-radius:10px;color:white;font-size:1rem;cursor:pointer;">${answer}</button>`
+            `<button onclick="checkAnswer(${i})" style="display:block;width:100%;max-width:300px;margin:10px auto;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;cursor:pointer;transition:all 0.3s;">${answer}</button>`
         ).join('');
-        content.innerHTML = `<h3 style="margin-bottom:30px;font-size:1.3rem;">${q.q}</h3>${buttons}`;
+        content.innerHTML = `<h3 style="margin-bottom:25px;font-size:1.1rem;font-weight:400">${q.q}</h3>${buttons}`;
     }
     window.checkAnswer = function(index) {
         if (index === questions[currentQuestion].correct) {
@@ -274,7 +307,7 @@ function initQuizGame(container) {
     };
 }
 
-// 页面加载
+// ===== 页面加载 =====
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎨 绫月乃萝粉丝站已加载');
+    console.log('🌙 绫月乃萝 Fan Site loaded');
 });
