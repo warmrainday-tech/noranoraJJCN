@@ -21,6 +21,7 @@
                 <li><a href="#home" class="active">首页</a></li>
                 <li><a href="#about">关于</a></li>
                 <li><a href="#works">作品</a></li>
+            <li><a href="#videos">视频</a></li>
                 <li><a href="#social">社交</a></li>
                 <li><a href="#games">游戏</a></li>
             </ul>
@@ -123,28 +124,59 @@
             <div class="container">
                 <h2 class="section-title">🎨 代表作品</h2>
                 <p class="section-desc">部分作品展示，详见Pixiv</p>
-                <div class="works-carousel">
-                    <div class="carousel-track">
-                        <div class="work-card">
-                            <img src="images/work1.jpg" alt="作品1" class="work-img">
-                        </div>
-                        <div class="work-card">
-                            <img src="images/work2.jpg" alt="作品2" class="work-img">
-                        </div>
-                        <div class="work-card">
-                            <img src="images/work3.jpg" alt="作品3" class="work-img">
-                        </div>
-                        <div class="work-card">
-                            <img src="images/avatar.jpg" alt="作品4" class="work-img">
-                        </div>
+                <div class="works-slider">
+                    <div class="slider-wrapper" id="slider">
+                        <div class="slide"><img src="images/work1.jpg" alt="作品1"></div>
+                        <div class="slide"><img src="images/work2.jpg" alt="作品2"></div>
+                        <div class="slide"><img src="images/work3.jpg" alt="作品3"></div>
+                        <div class="slide"><img src="images/avatar.jpg" alt="作品4"></div>
                     </div>
-                    <button class="carousel-btn prev" onclick="moveCarousel(-1)">‹</button>
-                    <button class="carousel-btn next" onclick="moveCarousel(1)">›</button>
-                    <div class="carousel-dots"></div>
+                    <div class="slider-nav">
+                        <button class="nav-btn" onclick="prevSlide()">❮</button>
+                        <div class="dots" id="dots"></div>
+                        <button class="nav-btn" onclick="nextSlide()">❯</button>
+                    </div>
                 </div>
                 <div class="more-link">
                     <a href="https://www.pixiv.net/users/36966416" target="_blank" class="view-more">
                         查看更多作品 →
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 视频 -->
+        <section id="videos" class="section">
+            <div class="container">
+                <h2 class="section-title">📺 精彩视频</h2>
+                <p class="section-desc">关注B站观看更多直播切片</p>
+                <div class="videos-grid">
+                    <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card">
+                        <div class="video-thumb" style="background: linear-gradient(135deg, #ff9a9e, #fecfef);">
+                            <span class="play-icon">▶</span>
+                        </div>
+                        <div class="video-info">
+                            <h4>直播切片</h4>
+                            <span>B站空间</span>
+                        </div>
+                    </a>
+                    <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card">
+                        <div class="video-thumb" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
+                            <span class="play-icon">▶</span>
+                        </div>
+                        <div class="video-info">
+                            <h4>绘画过程</h4>
+                            <span>B站空间</span>
+                        </div>
+                    </a>
+                    <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card">
+                        <div class="video-thumb" style="background: linear-gradient(135deg, #84fab0, #8fd3f4);">
+                            <span class="play-icon">▶</span>
+                        </div>
+                        <div class="video-info">
+                            <h4>日常直播</h4>
+                            <span>B站空间</span>
+                        </div>
                     </a>
                 </div>
             </div>
