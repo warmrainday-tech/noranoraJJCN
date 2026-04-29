@@ -39,28 +39,44 @@
         </div>
     </nav>
 
-    <!-- 首屏：全屏立绘 -->
-    <section id="home" class="hero-section">
-        <div class="hero-bg" style="background-image: url('images/pixiv_hd_1.jpg')"></div>
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <p class="hero-sub">VIRTUAL ARTIST</p>
-            <h1 class="hero-title">綾月乃蘿</h1>
-            <p class="hero-name">Ayatsuki Nora</p>
-            <p class="hero-tagline">イラストレーター × 配信者</p>
-            <div class="scroll-hint">
-                <span>SCROLL</span>
-                <div class="scroll-line"></div>
+    <!-- ===== 首屏：模式A（插画Hero）或 模式B（emoji瀑布） ===== -->
+    <section id="home" class="hero-section" data-mode="art">
+        <!-- 模式A: 插画Hero -->
+        <div class="hero-mode-art">
+            <div class="hero-bg" id="heroBg" style="background-image: url('images/pixiv_hd_1.jpg')"></div>
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <p class="hero-sub">VIRTUAL ARTIST</p>
+                <h1 class="hero-title">綾月乃蘿</h1>
+                <p class="hero-name">Ayatsuki Nora</p>
+                <p class="hero-tagline">イラストレーター × 配信者</p>
+                <div class="scroll-hint">
+                    <span>SCROLL</span>
+                    <div class="scroll-line"></div>
+                </div>
+            </div>
+        </div>
+        <!-- 模式B: Emoji瀑布 -->
+        <div class="hero-mode-emoji" style="display:none;">
+            <div class="emoji-waterfall" id="emojiWaterfall"></div>
+            <div class="emoji-overlay"></div>
+            <div class="hero-content">
+                <p class="hero-sub">VIRTUAL ARTIST</p>
+                <h1 class="hero-title">綾月乃蘿</h1>
+                <p class="hero-name">Ayatsuki Nora</p>
+                <p class="hero-tagline">イラストレーター × 配信者</p>
+                <div class="scroll-hint">
+                    <span>SCROLL</span>
+                    <div class="scroll-line"></div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- 作品画廊：核心 -->
+    <!-- 作品画廊 -->
     <section id="gallery" class="gallery-section">
-        <div class="section-header">
-            <h2 class="en-title">GALLERY</h2>
-        </div>
-        <div class="masonry-grid">
+        <div class="section-header"><h2 class="en-title">GALLERY</h2></div>
+        <div class="masonry-grid" id="masonryGrid">
             <div class="masonry-item tall"><img src="images/pixiv_hd_2.jpg" alt="" loading="lazy"></div>
             <div class="masonry-item"><img src="images/pixiv_hd_3.jpg" alt="" loading="lazy"></div>
             <div class="masonry-item"><img src="images/pixiv_hd_4.jpg" alt="" loading="lazy"></div>
@@ -86,9 +102,7 @@
 
     <!-- 个人资料 -->
     <section id="profile" class="profile-section">
-        <div class="section-header">
-            <h2 class="en-title">PROFILE</h2>
-        </div>
+        <div class="section-header"><h2 class="en-title">PROFILE</h2></div>
         <div class="profile-content">
             <div class="profile-avatar">
                 <img src="images/avatar.jpg" alt="绫月乃萝">
@@ -114,9 +128,7 @@
 
     <!-- 视频 -->
     <section id="videos" class="videos-section">
-        <div class="section-header">
-            <h2 class="en-title">MOVIE</h2>
-        </div>
+        <div class="section-header"><h2 class="en-title">MOVIE</h2></div>
         <div class="videos-grid">
             <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card">
                 <div class="video-thumb">
@@ -153,30 +165,27 @@
 
     <!-- 游戏 -->
     <section id="games" class="games-section">
-        <div class="section-header">
-            <h2 class="en-title">PLAY</h2>
-        </div>
+        <div class="section-header"><h2 class="en-title">PLAY</h2></div>
         <div class="games-grid">
             <div class="game-card" onclick="loadGame('memory')">
                 <div class="game-icon">🃏</div>
-                <h3>MEMORY</h3>
-                <p>記憶翻牌</p>
+                <h3>MEMORY</h3><p>記憶翻牌</p>
             </div>
             <div class="game-card" onclick="loadGame('catch')">
                 <div class="game-icon">⭐</div>
-                <h3>CATCH</h3>
-                <p>接星星</p>
+                <h3>CATCH</h3><p>接星星</p>
             </div>
             <div class="game-card" onclick="loadGame('quiz')">
                 <div class="game-icon">❓</div>
-                <h3>QUIZ</h3>
-                <p>乃蘿問答</p>
+                <h3>QUIZ</h3><p>乃蘿問答</p>
             </div>
         </div>
         <div id="gameContainer" class="game-container"></div>
     </section>
 
-    <!-- Footer -->
+    <!-- 设置入口（右下角齿轮） -->
+    <a href="settings.html" class="settings-fab" title="设置">⚙</a>
+
     <footer class="site-footer">
         <p>© 2026 Ayatsuki Nora Fan Site</p>
     </footer>
