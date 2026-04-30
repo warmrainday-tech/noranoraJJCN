@@ -1,50 +1,6 @@
-// 绫月乃萝 Fan Site — main.js
+// 绫月乃萝 Fan Site — main.js (三主题 + 可视化编辑 + Emoji瀑布)
 
-// ===== 侧边导航 =====
-const navToggle = document.getElementById('navToggle');
-const sideNav = document.getElementById('sideNav');
-
-navToggle.addEventListener('click', () => {
-    sideNav.classList.toggle('open');
-});
-
-document.querySelectorAll('.nav-menu a').forEach(link => {
-    link.addEventListener('click', () => sideNav.classList.remove('open'));
-});
-
-document.addEventListener('click', (e) => {
-    if (sideNav.classList.contains('open') && !sideNav.contains(e.target)) {
-        sideNav.classList.remove('open');
-    }
-});
-
-// 平滑滚动
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) target.scrollIntoView({ behavior: 'smooth' });
-    });
-});
-
-// 导航高亮
-const sections = document.querySelectorAll('section');
-const navItems = document.querySelectorAll('.nav-menu a');
-
-window.addEventListener('scroll', () => {
-    let current = '';
-    sections.forEach(section => {
-        if (scrollY >= section.offsetTop - 300) {
-            current = section.getAttribute('id');
-        }
-    });
-    navItems.forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('href') === '#' + current) item.classList.add('active');
-    });
-});
-
-// ===== Emoji Waterfall =====
+// ===== EMOJI FILES =====
 const EMOJI_DIR = 'noraemoji/';
 const EMOJI_FILES = [
     '07A21E208726EF4EB062DF73BAD53FB3.jpg','07F75AAEE5082ECE32FBDE5DF30EBE5C.jpg',
@@ -88,253 +44,401 @@ function shuffleArray(arr) {
     return a;
 }
 
+// ===== CONFIG =====
+const DEFAULT_CONFIG = {
+    homeMode: 'art', theme: 'dark', heroImage: 'images/pixiv_hd_1.jpg',
+    emojiDir: 'vertical', emojiCols: 12, emojiSpeed: 30, emojiOpacity: 0.6,
+    galleryCols: 3, galleryGap: 16,
+};
+
+let CONFIG = { ...DEFAULT_CONFIG, ...(JSON.parse(localStorage.getItem('nora_config') || '{}')) };
+
+function saveConfig() { localStorage.setItem('nora_config', JSON.stringify(CONFIG)); }
+
+// ===== INIT =====
+// Apply theme
+document.body.setAttribute('data-theme', CONFIG.theme);
+
+// Apply hero image
+const heroBg = document.getElementById('heroBg');
+if (heroBg) heroBg.style.backgroundImage = `url('${CONFIG.heroImage}')`;
+
+// Apply home mode
+applyHomeMode(CONFIG.homeMode);
+
+// Apply gallery
+const masonryGrid = document.getElementById('masonryGrid');
+if (masonryGrid) { masonryGrid.style.columns = CONFIG.galleryCols; masonryGrid.style.columnGap = CONFIG.galleryGap + 'px'; }
+
+// Update settings panel values
+function syncSettingsUI() {
+    document.querySelectorAll('.sp-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === CONFIG.homeMode));
+    document.querySelectorAll('.sp-theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === CONFIG.theme));
+    document.querySelectorAll('.sp-dir-btn').forEach(b => b.classList.toggle('active', b.dataset.dir === CONFIG.emojiDir));
+    const colsSlider = document.getElementById('spGalleryCols');
+    const speedSlider = document.getElementById('spEmojiSpeed');
+    const opSlider = document.getElementById('spEmojiOpacity');
+    if (colsSlider) { colsSlider.value = CONFIG.galleryCols; document.getElementById('spGalleryColsVal').textContent = CONFIG.galleryCols; }
+    if (speedSlider) { speedSlider.value = CONFIG.emojiSpeed; document.getElementById('spEmojiSpeedVal').textContent = CONFIG.emojiSpeed + 's'; }
+    if (opSlider) { opSlider.value = Math.round(CONFIG.emojiOpacity * 10); document.getElementById('spEmojiOpacityVal').textContent = CONFIG.emojiOpacity; }
+}
+
+// ===== SIDEBAR NAV =====
+const navToggle = document.getElementById('navToggle');
+const sideNav = document.getElementById('sideNav');
+navToggle.addEventListener('click', () => sideNav.classList.toggle('open'));
+document.querySelectorAll('.nav-menu a').forEach(link => link.addEventListener('click', () => sideNav.classList.remove('open')));
+document.addEventListener('click', (e) => { if (sideNav.classList.contains('open') && !sideNav.contains(e.target)) sideNav.classList.remove('open'); });
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+});
+
+// Nav highlight
+window.addEventListener('scroll', () => {
+    let current = '';
+    document.querySelectorAll('section').forEach(s => { if (scrollY >= s.offsetTop - 300) current = s.id; });
+    document.querySelectorAll('.nav-menu a').forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+});
+
+// ===== HOME MODE =====
+function applyHomeMode(mode) {
+    const art = document.getElementById('heroModeArt');
+    const emoji = document.getElementById('heroModeEmoji');
+    if (mode === 'emoji') {
+        art.style.display = 'none'; emoji.style.display = 'block';
+        buildEmojiWaterfall();
+    } else {
+        art.style.display = 'block'; emoji.style.display = 'none';
+    }
+}
+
+function setHomeMode(mode) {
+    CONFIG.homeMode = mode; saveConfig(); applyHomeMode(mode); syncSettingsUI();
+}
+
+// ===== THEME =====
+function setTheme(theme) {
+    CONFIG.theme = theme; saveConfig();
+    document.body.setAttribute('data-theme', theme); syncSettingsUI();
+}
+
+// ===== EMOJI WATERFALL (修复跳帧) =====
+let emojiAnimId = null;
+
 function buildEmojiWaterfall() {
     const container = document.getElementById('emojiWaterfall');
     if (!container) return;
     container.innerHTML = '';
+    container.className = 'emoji-waterfall ' + CONFIG.emojiDir;
 
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    const emojiSettings = settings.emoji || {};
-    const columnCount = parseInt(emojiSettings.cols) || (window.innerWidth < 600 ? 6 : window.innerWidth < 1000 ? 8 : 12);
-    const baseSpeed = parseInt(emojiSettings.speed) || 30;
-    const imgOpacity = parseFloat(emojiSettings.opacity) || 0.6;
+    const columnCount = CONFIG.emojiCols || 12;
+    const baseSpeed = CONFIG.emojiSpeed || 30;
+    const imgOpacity = CONFIG.emojiOpacity || 0.6;
+    container.style.setProperty('--emoji-opacity', imgOpacity);
 
     for (let col = 0; col < columnCount; col++) {
         const colEl = document.createElement('div');
         colEl.className = 'emoji-column' + (col % 2 === 1 ? ' reverse' : '');
-        const duration = baseSpeed + (Math.random() - 0.5) * 15;
+        const duration = baseSpeed + (Math.random() - 0.5) * 10;
         colEl.style.setProperty('--scroll-duration', duration + 's');
 
         const shuffled = shuffleArray(EMOJI_FILES);
-        const doubled = [...shuffled, ...shuffled];
-        doubled.forEach(file => {
+        // 重复3次确保内容足够，无缝滚动
+        const tripled = [...shuffled, ...shuffled, ...shuffled];
+        tripled.forEach(file => {
             const img = document.createElement('img');
-            img.src = EMOJI_DIR + file;
-            img.alt = '';
-            img.loading = 'lazy';
-            img.style.opacity = imgOpacity;
+            img.src = EMOJI_DIR + file; img.alt = ''; img.loading = 'lazy';
             colEl.appendChild(img);
         });
         container.appendChild(colEl);
     }
 }
 
-// ===== 首页模式切换 =====
-function applyHomeMode(mode) {
-    const artMode = document.querySelector('.hero-mode-art');
-    const emojiMode = document.querySelector('.hero-mode-emoji');
-    if (mode === 'emoji') {
-        artMode.style.display = 'none';
-        emojiMode.style.display = 'block';
-        buildEmojiWaterfall();
+function setEmojiDir(dir) {
+    CONFIG.emojiDir = dir; saveConfig();
+    const container = document.getElementById('emojiWaterfall');
+    if (container) { container.className = 'emoji-waterfall ' + dir; }
+    syncSettingsUI();
+}
+
+function setEmojiSpeed(val) {
+    CONFIG.emojiSpeed = parseInt(val); saveConfig();
+    document.getElementById('spEmojiSpeedVal').textContent = val + 's';
+    buildEmojiWaterfall();
+}
+
+function setEmojiOpacity(val) {
+    CONFIG.emojiOpacity = parseInt(val) / 10; saveConfig();
+    document.getElementById('spEmojiOpacityVal').textContent = CONFIG.emojiOpacity;
+    document.getElementById('emojiWaterfall').style.setProperty('--emoji-opacity', CONFIG.emojiOpacity);
+}
+
+function setGalleryCols(val) {
+    CONFIG.galleryCols = parseInt(val); saveConfig();
+    document.getElementById('spGalleryColsVal').textContent = val;
+    if (masonryGrid) masonryGrid.style.columns = val;
+}
+
+// ===== SETTINGS PANEL =====
+function toggleSettingsPanel() {
+    const panel = document.getElementById('settingsPanel');
+    const visible = panel.style.display !== 'none';
+    panel.style.display = visible ? 'none' : 'block';
+    if (!visible) syncSettingsUI();
+}
+
+// ===== VISUAL EDIT MODE =====
+let editMode = false;
+const editPopup = document.createElement('div');
+editPopup.className = 'edit-popup';
+editPopup.innerHTML = `
+    <div id="editPopupContent"></div>
+    <div class="edit-popup-btns">
+        <button class="confirm" onclick="confirmEdit()">✓</button>
+        <button class="cancel" onclick="cancelEdit()">✕</button>
+    </div>
+`;
+document.body.appendChild(editPopup);
+
+let currentEditTarget = null;
+let currentEditType = null;
+
+function enterEditMode() {
+    editMode = true;
+    document.body.classList.add('edit-mode');
+    document.getElementById('editOverlay').style.display = 'block';
+    document.getElementById('settingsPanel').style.display = 'none';
+    // Disable scroll
+    document.body.style.overflow = 'auto';
+}
+
+function toggleEditMode() {
+    if (editMode) {
+        editMode = false;
+        document.body.classList.remove('edit-mode');
+        document.getElementById('editOverlay').style.display = 'none';
+        cancelEdit();
     } else {
-        artMode.style.display = 'block';
-        emojiMode.style.display = 'none';
+        enterEditMode();
     }
-    localStorage.setItem('nora_home_mode', mode);
 }
 
-// 读取保存的模式和设置
-const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-const savedHeroImage = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
-
-// 应用Hero背景图
-if (savedHeroImage && document.getElementById('heroBg')) {
-    document.getElementById('heroBg').style.backgroundImage = `url('${savedHeroImage}')`;
+function saveEdits() {
+    saveConfig();
+    editMode = false;
+    document.body.classList.remove('edit-mode');
+    document.getElementById('editOverlay').style.display = 'none';
+    cancelEdit();
+    showToast('✓ 已保存');
 }
 
-applyHomeMode(savedMode);
+// Click handler for editable elements
+document.addEventListener('click', (e) => {
+    if (!editMode) return;
+    e.preventDefault(); e.stopPropagation();
 
-// ===== 滚动动画 =====
+    const editable = e.target.closest('[data-editable]');
+    const editableImg = e.target.closest('[data-editable-img]');
+    const editableLink = e.target.closest('[data-editable-link]');
+
+    if (editable) {
+        showEditPopup(e, 'text', editable);
+    } else if (editableImg) {
+        const imgEl = editableImg.tagName === 'IMG' ? editableImg : editableImg.querySelector('img');
+        showEditPopup(e, 'img', imgEl);
+    } else if (editableLink) {
+        showEditPopup(e, 'link', editableLink);
+    }
+});
+
+function showEditPopup(e, type, target) {
+    currentEditTarget = target;
+    currentEditType = type;
+    const popup = editPopup;
+    const content = document.getElementById('editPopupContent');
+    const rect = e.target.getBoundingClientRect();
+    const px = Math.min(rect.right + 10, window.innerWidth - 280);
+    const py = Math.max(rect.top - 10, 10);
+
+    popup.style.left = px + 'px';
+    popup.style.top = py + 'px';
+
+    if (type === 'text') {
+        content.innerHTML = `<label>编辑文字</label><input type="text" id="editInput" value="${target.textContent.trim()}">`;
+    } else if (type === 'img') {
+        const src = target.tagName === 'DIV' ? target.style.backgroundImage.replace(/url\(['"]?|['"]?\)/g, '') : target.src;
+        content.innerHTML = `<label>图片路径</label><input type="text" id="editInput" value="${src}">`;
+    } else if (type === 'link') {
+        content.innerHTML = `<label>链接地址</label><input type="text" id="editInput" value="${target.href}">`;
+    }
+
+    popup.classList.add('active');
+    setTimeout(() => document.getElementById('editInput').focus(), 50);
+}
+
+function confirmEdit() {
+    const val = document.getElementById('editInput').value;
+    if (currentEditType === 'text') {
+        currentEditTarget.textContent = val;
+    } else if (currentEditType === 'img') {
+        if (currentEditTarget.tagName === 'DIV') {
+            currentEditTarget.style.backgroundImage = `url('${val}')`;
+            if (currentEditTarget.id === 'heroBg') CONFIG.heroImage = val;
+        } else {
+            currentEditTarget.src = val;
+        }
+    } else if (currentEditType === 'link') {
+        currentEditTarget.href = val;
+    }
+    editPopup.classList.remove('active');
+    currentEditTarget = null;
+}
+
+function cancelEdit() {
+    editPopup.classList.remove('active');
+    currentEditTarget = null;
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        cancelEdit();
+        if (editMode) toggleEditMode();
+        lightbox.classList.remove('active');
+    }
+    if (e.key === 'Enter' && editPopup.classList.contains('active')) confirmEdit();
+});
+
+// ===== TOAST =====
+function showToast(msg) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:white;padding:12px 30px;border-radius:50px;font-size:0.85rem;transition:transform 0.4s;z-index:1000;pointer-events:none;';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(80px)'; }, 2000);
+}
+
+function resetAll() {
+    if (confirm('确定恢复默认？')) {
+        localStorage.removeItem('nora_config');
+        location.reload();
+    }
+}
+
+// ===== SCROLL ANIMATION =====
 const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
+    entries.forEach(entry => {
         if (entry.isIntersecting) {
             const delay = Array.from(entry.target.parentNode.children).indexOf(entry.target) * 80;
-            setTimeout(() => {
-                entry.target.classList.add('visible');
-            }, Math.min(delay, 500));
+            setTimeout(() => entry.target.classList.add('visible'), Math.min(delay, 500));
         }
     });
 }, { threshold: 0.1 });
+document.querySelectorAll('.masonry-item, .video-card, .game-card, .profile-content').forEach(el => observer.observe(el));
 
-document.querySelectorAll('.masonry-item, .video-card, .game-card, .profile-content').forEach(el => {
-    observer.observe(el);
-});
-
-// ===== Lightbox =====
+// ===== LIGHTBOX =====
 const lightbox = document.createElement('div');
 lightbox.className = 'lightbox';
 lightbox.innerHTML = '<img src="" alt=""><button class="lightbox-close">&times;</button>';
 document.body.appendChild(lightbox);
-
-const lbStyle = document.createElement('style');
-lbStyle.textContent = `
-    .lightbox { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; cursor:zoom-out; }
-    .lightbox.active { display:flex; }
-    .lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:4px; }
-    .lightbox-close { position:absolute; top:20px; right:30px; background:none; border:none; color:white; font-size:2rem; cursor:pointer; opacity:0.5; transition:opacity 0.3s; }
-    .lightbox-close:hover { opacity:1; }
-`;
-document.head.appendChild(lbStyle);
+lightbox.addEventListener('click', () => lightbox.classList.remove('active'));
 
 document.querySelectorAll('.masonry-item img').forEach(img => {
     img.addEventListener('click', () => {
+        if (editMode) return;
         lightbox.querySelector('img').src = img.src;
         lightbox.classList.add('active');
     });
 });
 
-lightbox.addEventListener('click', () => lightbox.classList.remove('active'));
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lightbox.classList.remove('active'); });
-
-// ===== 游戏系统 =====
+// ===== GAMES =====
 let currentGame = null;
-
-function loadGame(gameName) {
-    const container = document.getElementById('gameContainer');
-    container.classList.add('active');
-    container.scrollIntoView({ behavior: 'smooth' });
-    switch(gameName) {
-        case 'memory': initMemoryGame(container); break;
-        case 'catch': initCatchGame(container); break;
-        case 'quiz': initQuizGame(container); break;
-    }
+function loadGame(name) {
+    const c = document.getElementById('gameContainer'); c.classList.add('active'); c.scrollIntoView({ behavior: 'smooth' });
+    if (name === 'memory') initMemoryGame(c); else if (name === 'catch') initCatchGame(c); else if (name === 'quiz') initQuizGame(c);
 }
+function closeGame() { document.getElementById('gameContainer').classList.remove('active'); currentGame = null; }
 
-function closeGame() {
-    document.getElementById('gameContainer').classList.remove('active');
-    currentGame = null;
-}
-
-function initMemoryGame(container) {
+function initMemoryGame(c) {
     currentGame = 'memory';
     const cards = ['🎨','🎨','🖌️','🖌️','✨','✨','🌙','🌙','⭐','⭐','💖','💖','🎀','🎀','🌸','🌸'];
-    for (let i = cards.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [cards[i], cards[j]] = [cards[j], cards[i]];
-    }
-    container.innerHTML = `
-        <div class="game-header"><h3>MEMORY</h3>
-            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="score">0</span> | Moves: <span id="moves">0</span></div>
-            <button class="close-game" onclick="closeGame()">×</button></div>
-        <div id="memoryGame" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:400px;margin:20px auto;"></div>`;
+    for (let i = cards.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [cards[i], cards[j]] = [cards[j], cards[i]]; }
+    c.innerHTML = `<div class="game-header"><h3>MEMORY</h3><div style="color:var(--text-dim);font-family:'Montserrat';font-size:.85rem">Score: <span id="score">0</span> | Moves: <span id="moves">0</span></div><button class="close-game" onclick="closeGame()">×</button></div><div id="memoryGame" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:400px;margin:20px auto"></div>`;
     const game = document.getElementById('memoryGame');
-    let flippedCards = [], matchedPairs = 0, moves = 0, canFlip = true;
+    let flipped = [], matched = 0, moves = 0, canFlip = true;
     cards.forEach(emoji => {
-        const card = document.createElement('div');
-        card.dataset.emoji = emoji;
+        const card = document.createElement('div'); card.dataset.emoji = emoji;
         const inner = document.createElement('div');
-        inner.style.cssText = 'aspect-ratio:1;background:linear-gradient(135deg,rgba(200,162,232,0.2),rgba(255,126,179,0.2));border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:all 0.4s;color:transparent;';
-        inner.textContent = emoji;
-        card.appendChild(inner);
-        card.addEventListener('click', () => flipCard(card));
+        inner.style.cssText = "aspect-ratio:1;background:linear-gradient(135deg,rgba(200,162,232,.2),rgba(255,126,179,.2));border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:all .4s;color:transparent;";
+        inner.textContent = emoji; card.appendChild(inner);
+        card.addEventListener('click', () => {
+            if (!canFlip || flipped.includes(card) || card.dataset.matched) return;
+            inner.style.color = 'var(--text)'; inner.style.background = 'rgba(200,162,232,.1)'; flipped.push(card);
+            if (flipped.length === 2) { moves++; document.getElementById('moves').textContent = moves; check(); }
+        });
         game.appendChild(card);
     });
-    function flipCard(card) {
-        if (!canFlip || flippedCards.includes(card) || card.dataset.matched) return;
-        const inner = card.querySelector('div');
-        inner.style.color = 'var(--text)';
-        inner.style.background = 'rgba(200,162,232,0.1)';
-        flippedCards.push(card);
-        if (flippedCards.length === 2) { moves++; document.getElementById('moves').textContent = moves; checkMatch(); }
-    }
-    function checkMatch() {
-        canFlip = false;
-        const [c1, c2] = flippedCards;
-        if (c1.dataset.emoji === c2.dataset.emoji) {
-            matchedPairs++;
-            document.getElementById('score').textContent = matchedPairs * 10;
-            c1.dataset.matched = '1'; c2.dataset.matched = '1';
-            flippedCards = []; canFlip = true;
-            if (matchedPairs === cards.length / 2) setTimeout(() => alert('🎉 通关！ ' + moves + ' 步'), 300);
+    function check() {
+        canFlip = false; const [a, b] = flipped;
+        if (a.dataset.emoji === b.dataset.emoji) {
+            matched++; document.getElementById('score').textContent = matched * 10; a.dataset.matched = b.dataset.matched = '1'; flipped = []; canFlip = true;
+            if (matched === cards.length / 2) setTimeout(() => alert('🎉 通关！' + moves + '步'), 300);
         } else {
-            setTimeout(() => {
-                [c1, c2].forEach(c => { const i = c.querySelector('div'); i.style.color = 'transparent'; i.style.background = 'linear-gradient(135deg,rgba(200,162,232,0.2),rgba(255,126,179,0.2))'; });
-                flippedCards = []; canFlip = true;
-            }, 800);
+            setTimeout(() => { [a, b].forEach(c => { const i = c.querySelector('div'); i.style.color = 'transparent'; i.style.background = 'linear-gradient(135deg,rgba(200,162,232,.2),rgba(255,126,179,.2))'; }); flipped = []; canFlip = true; }, 800);
         }
     }
 }
 
-function initCatchGame(container) {
+function initCatchGame(c) {
     currentGame = 'catch';
-    container.innerHTML = `
-        <div class="game-header"><h3>CATCH</h3>
-            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="catchScore">0</span></div>
-            <button class="close-game" onclick="closeGame()">×</button></div>
-        <canvas id="gameCanvas" width="480" height="360" style="display:block;margin:0 auto;border-radius:8px;border:1px solid var(--border);"></canvas>
-        <p style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:10px">← → 移动</p>`;
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    let score = 0, frameCount = 0;
-    const player = { x: 215, y: 310, width: 50, height: 50 };
-    let stars = [], keys = {};
-    const onKey = (e, v) => { keys[e.key] = v; };
-    document.addEventListener('keydown', e => onKey(e, true));
-    document.addEventListener('keyup', e => onKey(e, false));
-    function gameLoop() {
+    c.innerHTML = `<div class="game-header"><h3>CATCH</h3><div style="color:var(--text-dim);font-family:'Montserrat';font-size:.85rem">Score: <span id="catchScore">0</span></div><button class="close-game" onclick="closeGame()">×</button></div><canvas id="gameCanvas" width="480" height="360" style="display:block;margin:0 auto;border-radius:8px;border:1px solid var(--border)"></canvas><p style="text-align:center;color:var(--text-dim);font-size:.8rem;margin-top:10px">← → 移动</p>`;
+    const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+    let score = 0, frame = 0, player = {x:215,y:310,w:50,h:50}, stars = [], keys = {};
+    document.addEventListener('keydown', e => keys[e.key] = true); document.addEventListener('keyup', e => keys[e.key] = false);
+    (function loop() {
         if (!currentGame || currentGame !== 'catch') return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#0a0a0f'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        if (keys['ArrowLeft'] && player.x > 0) player.x -= 6;
-        if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += 6;
-        ctx.font = '36px Arial'; ctx.textAlign = 'center'; ctx.fillText('🎨', player.x + 25, player.y + 35);
-        if (frameCount % 35 === 0) stars.push({ x: Math.random() * (canvas.width - 30), y: 0, speed: 2 + Math.random() * 2.5 });
-        stars.forEach((s, i) => {
-            s.y += s.speed; ctx.font = '24px Arial'; ctx.fillText('⭐', s.x + 15, s.y + 20);
-            if (s.y + 20 > player.y && s.y < player.y + player.height && s.x + 15 > player.x && s.x < player.x + player.width) { stars.splice(i, 1); score++; document.getElementById('catchScore').textContent = score; }
-            if (s.y > canvas.height) stars.splice(i, 1);
-        });
-        frameCount++;
-        if (currentGame === 'catch') requestAnimationFrame(gameLoop);
-    }
-    gameLoop();
+        ctx.clearRect(0,0,480,360); ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg'); ctx.fillRect(0,0,480,360);
+        if (keys['ArrowLeft'] && player.x > 0) player.x -= 6; if (keys['ArrowRight'] && player.x < 430) player.x += 6;
+        ctx.font = '36px Arial'; ctx.textAlign = 'center'; ctx.fillText('🎨', player.x+25, player.y+35);
+        if (frame % 35 === 0) stars.push({x: Math.random()*440, y: 0, s: 2+Math.random()*2.5});
+        stars.forEach((s,i) => { s.y += s.s; ctx.font = '24px Arial'; ctx.fillText('⭐', s.x+15, s.y+20);
+            if (s.y+20>player.y && s.y<player.y+50 && s.x+15>player.x && s.x<player.x+50) { stars.splice(i,1); score++; document.getElementById('catchScore').textContent = score; }
+            if (s.y > 360) stars.splice(i,1); });
+        frame++; if (currentGame === 'catch') requestAnimationFrame(loop);
+    })();
 }
 
-function initQuizGame(container) {
+function initQuizGame(c) {
     currentGame = 'quiz';
-    const questions = [
-        { q: '乃萝的B站UID是？', a: ['86471108', '12345678', '99999999'], correct: 0 },
-        { q: '乃萝的Twitter ID是？', a: ['@nora_vtuber', '@Ayatsuki_Nora', '@nora_draw'], correct: 1 },
-        { q: '乃萝的职业是？', a: ['纯画师', '纯主播', '兼职画师和主播'], correct: 2 },
-        { q: '乃萝的Pixiv ID是？', a: ['36966416', '12345678', '99999999'], correct: 0 },
+    const qs = [
+        {q:'乃萝的B站UID是？',a:['86471108','12345678','99999999'],c:0},
+        {q:'乃萝的Twitter ID是？',a:['@nora_vtuber','@Ayatsuki_Nora','@nora_draw'],c:1},
+        {q:'乃萝的职业是？',a:['纯画师','纯主播','兼职画师和主播'],c:2},
+        {q:'乃萝的Pixiv ID是？',a:['36966416','12345678','99999999'],c:0},
     ];
-    let qIdx = 0, score = 0;
-    container.innerHTML = `
-        <div class="game-header"><h3>QUIZ</h3>
-            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="quizScore">0</span> | <span id="qNum">1</span>/${questions.length}</div>
-            <button class="close-game" onclick="closeGame()">×</button></div>
-        <div id="quizContent" style="text-align:center;padding:20px;max-width:500px;margin:0 auto;"></div>`;
+    let qi = 0, score = 0;
+    c.innerHTML = `<div class="game-header"><h3>QUIZ</h3><div style="color:var(--text-dim);font-family:'Montserrat';font-size:.85rem">Score: <span id="quizScore">0</span> | <span id="qNum">1</span>/${qs.length}</div><button class="close-game" onclick="closeGame()">×</button></div><div id="quizContent" style="text-align:center;padding:20px;max-width:500px;margin:0 auto"></div>`;
     showQ();
     function showQ() {
         const el = document.getElementById('quizContent');
-        if (qIdx >= questions.length) {
-            el.innerHTML = `<h3 style="margin-bottom:20px;color:var(--accent)">完成！</h3><p style="font-size:1.3rem;margin-bottom:30px">${score}/${questions.length}</p><button onclick="initQuizGame(document.getElementById('gameContainer'))" style="padding:12px 30px;background:transparent;border:1px solid var(--accent);border-radius:50px;color:var(--accent);cursor:pointer;font-family:var(--font-en)">RETRY</button>`;
-            return;
-        }
-        document.getElementById('qNum').textContent = qIdx + 1;
-        const q = questions[qIdx];
-        el.innerHTML = `<h3 style="margin-bottom:25px;font-size:1.1rem;font-weight:400">${q.q}</h3>${q.a.map((a, i) => `<button onclick="checkAns(${i})" style="display:block;width:100%;max-width:300px;margin:10px auto;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;cursor:pointer;">${a}</button>`).join('')}`;
+        if (qi >= qs.length) { el.innerHTML = `<h3 style="margin-bottom:20px;color:var(--accent)">完成！</h3><p style="font-size:1.3rem;margin-bottom:30px">${score}/${qs.length}</p><button onclick="initQuizGame(document.getElementById('gameContainer'))" style="padding:12px 30px;background:transparent;border:1px solid var(--accent);border-radius:50px;color:var(--accent);cursor:pointer;font-family:'Montserrat'">RETRY</button>`; return; }
+        document.getElementById('qNum').textContent = qi + 1;
+        el.innerHTML = `<h3 style="margin-bottom:25px;font-size:1.1rem;font-weight:400">${qs[qi].q}</h3>${qs[qi].a.map((a,i)=>`<button onclick="checkAns(${i})" style="display:block;width:100%;max-width:300px;margin:10px auto;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.95rem;cursor:pointer">${a}</button>`).join('')}`;
     }
-    window.checkAns = function(i) {
-        if (i === questions[qIdx].correct) { score++; document.getElementById('quizScore').textContent = score; }
-        qIdx++; showQ();
-    };
+    window.checkAns = function(i) { if (i === qs[qi].c) { score++; document.getElementById('quizScore').textContent = score; } qi++; showQ(); };
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🌙 绫月乃萝 Fan Site loaded');
-    
-    // 应用设置页的画廊配置
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (settings.gallery) {
-        const grid = document.getElementById('masonryGrid');
-        if (grid && settings.gallery.cols) {
-            grid.style.columns = settings.gallery.cols;
-        }
-        if (grid && settings.gallery.gap) {
-            grid.style.columnGap = settings.gallery.gap + 'px';
-        }
-    }
-});
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => { syncSettingsUI(); console.log('🌙 绫月乃萝 Fan Site loaded'); });

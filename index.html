@@ -13,12 +13,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body data-theme="dark">
+
     <!-- 侧边导航 -->
     <nav class="side-nav" id="sideNav">
-        <div class="nav-toggle" id="navToggle">
-            <span></span><span></span><span></span>
-        </div>
+        <div class="nav-toggle" id="navToggle"><span></span><span></span><span></span></div>
         <ul class="nav-menu">
             <li><a href="#home" class="active">HOME</a></li>
             <li><a href="#gallery">GALLERY</a></li>
@@ -27,168 +26,206 @@
             <li><a href="#games">PLAY</a></li>
         </ul>
         <div class="nav-sns">
-            <a href="https://space.bilibili.com/86471108" target="_blank" title="Bilibili" class="sns-btn">
+            <a href="https://space.bilibili.com/86471108" target="_blank" title="Bilibili" class="sns-btn" data-editable-link>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.853c1.767 0 3.2 1.433 3.2 3.2v8c0 1.767-1.433 3.2-3.2 3.2H5.333c-1.767 0-3.2-1.433-3.2-3.2v-8c0-1.767 1.433-3.2 3.2-3.2h.853L3.72 2.987a.427.427 0 01.587-.587l2.72 2.253h9.947l2.72-2.253a.427.427 0 01.587.587l-2.467 1.666zM5.333 5.507c-1.293 0-2.347 1.053-2.347 2.347v8c0 1.293 1.053 2.347 2.347 2.347h13.333c1.293 0 2.347-1.053 2.347-2.347v-8c0-1.293-1.053-2.347-2.347-2.347H5.333zm4.8 4.266v3.734a.64.64 0 01-1.28 0V9.773a.64.64 0 011.28 0zm4.8 0v3.734a.64.64 0 01-1.28 0V9.773a.64.64 0 011.28 0z"/></svg>
             </a>
-            <a href="https://twitter.com/Ayatsuki_Nora" target="_blank" title="Twitter" class="sns-btn">
+            <a href="https://twitter.com/Ayatsuki_Nora" target="_blank" title="Twitter" class="sns-btn" data-editable-link>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             </a>
-            <a href="https://www.pixiv.net/users/36966416" target="_blank" title="Pixiv" class="sns-btn">
+            <a href="https://www.pixiv.net/users/36966416" target="_blank" title="Pixiv" class="sns-btn" data-editable-link>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4.935 21.5h2.54v-6.8h4.33c3.88 0 6.53-2.37 6.53-5.85S15.685 3 11.805 3H4.935v18.5zM7.475 5.2h4.33c2.37 0 3.78 1.34 3.78 3.65s-1.41 3.65-3.78 3.65h-4.33V5.2z"/></svg>
             </a>
         </div>
     </nav>
 
-    <!-- ===== 首屏：模式A（插画Hero）或 模式B（emoji瀑布） ===== -->
-    <section id="home" class="hero-section" data-mode="art">
-        <!-- 模式A: 插画Hero -->
-        <div class="hero-mode-art">
-            <div class="hero-bg" id="heroBg" style="background-image: url('images/pixiv_hd_1.jpg')"></div>
+    <!-- ===== 首屏 ===== -->
+    <section id="home" class="hero-section">
+        <!-- Art Mode -->
+        <div class="hero-mode-art" id="heroModeArt">
+            <div class="hero-bg" id="heroBg" style="background-image: url('images/pixiv_hd_1.jpg')" data-editable-img></div>
             <div class="hero-overlay"></div>
             <div class="hero-content">
-                <p class="hero-sub">VIRTUAL ARTIST</p>
-                <h1 class="hero-title">綾月乃蘿</h1>
-                <p class="hero-name">Ayatsuki Nora</p>
-                <p class="hero-tagline">イラストレーター × 配信者</p>
-                <div class="scroll-hint">
-                    <span>SCROLL</span>
-                    <div class="scroll-line"></div>
-                </div>
+                <p class="hero-sub" data-editable>VIRTUAL ARTIST</p>
+                <h1 class="hero-title" data-editable>綾月乃蘿</h1>
+                <p class="hero-name" data-editable>Ayatsuki Nora</p>
+                <p class="hero-tagline" data-editable>イラストレーター × 配信者</p>
+                <div class="scroll-hint"><span>SCROLL</span><div class="scroll-line"></div></div>
             </div>
         </div>
-        <!-- 模式B: Emoji瀑布 -->
-        <div class="hero-mode-emoji" style="display:none;">
+        <!-- Emoji Mode -->
+        <div class="hero-mode-emoji" id="heroModeEmoji" style="display:none;">
             <div class="emoji-waterfall" id="emojiWaterfall"></div>
             <div class="emoji-overlay"></div>
             <div class="hero-content">
-                <p class="hero-sub">VIRTUAL ARTIST</p>
-                <h1 class="hero-title">綾月乃蘿</h1>
-                <p class="hero-name">Ayatsuki Nora</p>
-                <p class="hero-tagline">イラストレーター × 配信者</p>
-                <div class="scroll-hint">
-                    <span>SCROLL</span>
-                    <div class="scroll-line"></div>
-                </div>
+                <p class="hero-sub" data-editable>VIRTUAL ARTIST</p>
+                <h1 class="hero-title" data-editable>綾月乃蘿</h1>
+                <p class="hero-name" data-editable>Ayatsuki Nora</p>
+                <p class="hero-tagline" data-editable>イラストレーター × 配信者</p>
+                <div class="scroll-hint"><span>SCROLL</span><div class="scroll-line"></div></div>
             </div>
         </div>
     </section>
 
-    <!-- 作品画廊 -->
+    <!-- GALLERY -->
     <section id="gallery" class="gallery-section">
         <div class="section-header"><h2 class="en-title">GALLERY</h2></div>
         <div class="masonry-grid" id="masonryGrid">
-            <div class="masonry-item tall"><img src="images/pixiv_hd_2.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/pixiv_hd_3.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/pixiv_hd_4.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item tall"><img src="images/pixiv_hd_5.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/pixiv_hd_6.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/pixiv_hd_7.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/pixiv_hd_8.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item tall"><img src="images/pixiv_hd_9.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/pixiv_hd_10.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/pixiv_hd_11.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/pixiv_hd_12.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item tall"><img src="images/pixiv_hd_13.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/hd_cover1.jpg" alt="" loading="lazy"></div>
-            <div class="masonry-item"><img src="images/hd_cover2.jpg" alt="" loading="lazy"></div>
+            <div class="masonry-item tall"><img src="images/pixiv_hd_2.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/pixiv_hd_3.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/pixiv_hd_4.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item tall"><img src="images/pixiv_hd_5.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/pixiv_hd_6.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/pixiv_hd_7.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/pixiv_hd_8.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item tall"><img src="images/pixiv_hd_9.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/pixiv_hd_10.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/pixiv_hd_11.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/pixiv_hd_12.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item tall"><img src="images/pixiv_hd_13.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/hd_cover1.jpg" alt="" loading="lazy" data-editable-img></div>
+            <div class="masonry-item"><img src="images/hd_cover2.jpg" alt="" loading="lazy" data-editable-img></div>
         </div>
         <div class="gallery-more">
-            <a href="https://www.pixiv.net/users/36966416" target="_blank" class="more-btn">
+            <a href="https://www.pixiv.net/users/36966416" target="_blank" class="more-btn" data-editable-link>
                 VIEW MORE ON PIXIV
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
         </div>
     </section>
 
-    <!-- 个人资料 -->
+    <!-- PROFILE -->
     <section id="profile" class="profile-section">
         <div class="section-header"><h2 class="en-title">PROFILE</h2></div>
         <div class="profile-content">
             <div class="profile-avatar">
-                <img src="images/avatar.jpg" alt="绫月乃萝">
+                <img src="images/avatar.jpg" alt="绫月乃萝" data-editable-img>
             </div>
             <div class="profile-info">
-                <h3>綾月乃蘿</h3>
-                <p class="profile-sub">Ayatsuki Nora</p>
+                <h3 data-editable>綾月乃蘿</h3>
+                <p class="profile-sub" data-editable>Ayatsuki Nora</p>
                 <table class="profile-table">
-                    <tr><th>誕生日</th><td>4月21日</td></tr>
-                    <tr><th>種族</th><td>猫猫</td></tr>
-                    <tr><th>特性</th><td>左眼に月の印</td></tr>
-                    <tr><th>言語</th><td>中文 / 日本語</td></tr>
-                    <tr><th>活動</th><td>イラスト制作 × ライブ配信</td></tr>
+                    <tr><th>誕生日</th><td data-editable>4月21日</td></tr>
+                    <tr><th>種族</th><td data-editable>猫猫</td></tr>
+                    <tr><th>特性</th><td data-editable>左眼に月の印</td></tr>
+                    <tr><th>言語</th><td data-editable>中文 / 日本語</td></tr>
+                    <tr><th>活動</th><td data-editable>イラスト制作 × ライブ配信</td></tr>
                 </table>
-                <p class="profile-desc">
-                    猫猫画師兼職虛擬主播，你的賽博損友！<br>
-                    左眼有月之印記的貓咪，擅長同人插畫與原創角色設計。<br>
-                    在B站直播繪畫過程，偶爾也會玩遊戲和聊天。
-                </p>
+                <p class="profile-desc" data-editable>猫猫画師兼職虛擬主播，你的賽博損友！</p>
             </div>
         </div>
     </section>
 
-    <!-- 视频 -->
+    <!-- VIDEOS -->
     <section id="videos" class="videos-section">
         <div class="section-header"><h2 class="en-title">MOVIE</h2></div>
         <div class="videos-grid">
-            <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card">
+            <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card" data-editable-link>
                 <div class="video-thumb">
-                    <img src="images/vid_1.jpg" alt="">
-                    <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <img src="images/vid_1.jpg" alt="" data-editable-img>
+                    <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
                 </div>
             </a>
-            <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card">
+            <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card" data-editable-link>
                 <div class="video-thumb">
-                    <img src="images/vid_3.jpg" alt="">
-                    <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <img src="images/vid_3.jpg" alt="" data-editable-img>
+                    <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
                 </div>
             </a>
-            <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card">
+            <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card" data-editable-link>
                 <div class="video-thumb">
-                    <img src="images/vid_4.jpg" alt="">
-                    <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <img src="images/vid_4.jpg" alt="" data-editable-img>
+                    <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
                 </div>
             </a>
-            <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card">
+            <a href="https://space.bilibili.com/86471108" target="_blank" class="video-card" data-editable-link>
                 <div class="video-thumb">
-                    <img src="images/vid_6.jpg" alt="">
-                    <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+                    <img src="images/vid_6.jpg" alt="" data-editable-img>
+                    <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></div>
                 </div>
             </a>
         </div>
         <div class="gallery-more">
-            <a href="https://space.bilibili.com/86471108" target="_blank" class="more-btn">
+            <a href="https://space.bilibili.com/86471108" target="_blank" class="more-btn" data-editable-link>
                 VIEW MORE ON BILIBILI
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
         </div>
     </section>
 
-    <!-- 游戏 -->
+    <!-- GAMES -->
     <section id="games" class="games-section">
         <div class="section-header"><h2 class="en-title">PLAY</h2></div>
         <div class="games-grid">
-            <div class="game-card" onclick="loadGame('memory')">
-                <div class="game-icon">🃏</div>
-                <h3>MEMORY</h3><p>記憶翻牌</p>
-            </div>
-            <div class="game-card" onclick="loadGame('catch')">
-                <div class="game-icon">⭐</div>
-                <h3>CATCH</h3><p>接星星</p>
-            </div>
-            <div class="game-card" onclick="loadGame('quiz')">
-                <div class="game-icon">❓</div>
-                <h3>QUIZ</h3><p>乃蘿問答</p>
-            </div>
+            <div class="game-card" onclick="loadGame('memory')"><div class="game-icon">🃏</div><h3>MEMORY</h3><p>記憶翻牌</p></div>
+            <div class="game-card" onclick="loadGame('catch')"><div class="game-icon">⭐</div><h3>CATCH</h3><p>接星星</p></div>
+            <div class="game-card" onclick="loadGame('quiz')"><div class="game-icon">❓</div><h3>QUIZ</h3><p>乃蘿問答</p></div>
         </div>
         <div id="gameContainer" class="game-container"></div>
     </section>
 
-    <!-- 设置入口（右下角齿轮） -->
-    <a href="settings.html" class="settings-fab" title="设置">⚙</a>
+    <footer class="site-footer"><p>© 2026 Ayatsuki Nora Fan Site</p></footer>
 
-    <footer class="site-footer">
-        <p>© 2026 Ayatsuki Nora Fan Site</p>
-    </footer>
+    <!-- ===== 编辑模式覆盖层 ===== -->
+    <div class="edit-overlay" id="editOverlay" style="display:none;">
+        <div class="edit-toolbar">
+            <span class="edit-label">✏️ 编辑模式</span>
+            <button class="edit-btn" onclick="toggleEditMode()">退出编辑</button>
+            <button class="edit-btn save" onclick="saveEdits()">💾 保存</button>
+        </div>
+    </div>
+
+    <!-- ===== 设置齿轮面板 ===== -->
+    <div class="settings-fab" id="settingsFab" onclick="toggleSettingsPanel()">⚙</div>
+    <div class="settings-panel" id="settingsPanel" style="display:none;">
+        <div class="sp-header">
+            <span>⚙ 设置</span>
+            <button onclick="toggleSettingsPanel()">×</button>
+        </div>
+        <div class="sp-section">
+            <label class="sp-label">首页模式</label>
+            <div class="sp-mode-switch">
+                <button class="sp-mode-btn active" data-mode="art" onclick="setHomeMode('art')">ART</button>
+                <button class="sp-mode-btn" data-mode="emoji" onclick="setHomeMode('emoji')">EMOJI</button>
+            </div>
+        </div>
+        <div class="sp-section">
+            <label class="sp-label">主题</label>
+            <div class="sp-theme-switch">
+                <button class="sp-theme-btn" data-theme="dark" onclick="setTheme('dark')">🌙 暗色</button>
+                <button class="sp-theme-btn" data-theme="light" onclick="setTheme('light')">☀️ 亮色</button>
+                <button class="sp-theme-btn" data-theme="lavender" onclick="setTheme('lavender')">💜 薰衣草</button>
+            </div>
+        </div>
+        <div class="sp-section">
+            <label class="sp-label">Emoji瀑布方向</label>
+            <div class="sp-dir-switch">
+                <button class="sp-dir-btn active" data-dir="vertical" onclick="setEmojiDir('vertical')">↕ 纵向</button>
+                <button class="sp-dir-btn" data-dir="diagonal" onclick="setEmojiDir('diagonal')">↗ 斜向</button>
+            </div>
+        </div>
+        <div class="sp-section">
+            <label class="sp-label">画廊列数</label>
+            <input type="range" min="2" max="5" value="3" id="spGalleryCols" onchange="setGalleryCols(this.value)">
+            <span id="spGalleryColsVal">3</span>
+        </div>
+        <div class="sp-section">
+            <label class="sp-label">Emoji滚动速度</label>
+            <input type="range" min="10" max="60" value="30" id="spEmojiSpeed" onchange="setEmojiSpeed(this.value)">
+            <span id="spEmojiSpeedVal">30s</span>
+        </div>
+        <div class="sp-section">
+            <label class="sp-label">Emoji透明度</label>
+            <input type="range" min="1" max="10" value="6" id="spEmojiOpacity" onchange="setEmojiOpacity(this.value)">
+            <span id="spEmojiOpacityVal">0.6</span>
+        </div>
+        <div class="sp-divider"></div>
+        <div class="sp-section">
+            <button class="sp-action-btn" onclick="enterEditMode()">✏️ 进入编辑模式</button>
+        </div>
+        <div class="sp-section">
+            <button class="sp-action-btn danger" onclick="resetAll()">🔄 恢复默认</button>
+        </div>
+    </div>
 
     <script src="js/main.js"></script>
 </body>
