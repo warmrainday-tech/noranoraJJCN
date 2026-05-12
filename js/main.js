@@ -44,6 +44,9 @@ function shuffleArray(arr) {
     return a;
 }
 
+// ===== DUAL-LAYER MODE (游客 vs 管理员) =====
+const IS_EDIT = new URLSearchParams(window.location.search).has('edit');
+
 // ===== CONFIG =====
 const DEFAULT_CONFIG = {
     homeMode: 'art', theme: 'dark', heroImage: 'images/pixiv_hd_1.jpg',
@@ -70,8 +73,25 @@ applyHomeMode(CONFIG.homeMode);
 const masonryGrid = document.getElementById('masonryGrid');
 if (masonryGrid) { masonryGrid.style.columns = CONFIG.galleryCols; masonryGrid.style.columnGap = CONFIG.galleryGap + 'px'; }
 
+// Double-layer: hide admin UI for visitors
+if (!IS_EDIT) {
+    document.body.classList.add('visitor-mode');
+    // Remove admin-only elements
+    ['settingsFab', 'settingsPanel', 'editOverlay'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.remove();
+    });
+} else {
+    document.body.classList.add('admin-mode');
+    // Show admin badge
+    var badge = document.createElement('div');
+    badge.className = 'admin-badge';
+    badge.textContent = 'EDIT MODE';
+    document.body.appendChild(badge);
+}
+
 // Update settings panel values
-function syncSettingsUI() {
+function syncSettingsUI() { if (!IS_EDIT) return;
     document.querySelectorAll('.sp-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === CONFIG.homeMode));
     document.querySelectorAll('.sp-theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === CONFIG.theme));
     document.querySelectorAll('.sp-dir-btn').forEach(b => b.classList.toggle('active', b.dataset.dir === CONFIG.emojiDir));
@@ -189,6 +209,7 @@ function setGalleryCols(val) {
 
 // ===== SETTINGS PANEL =====
 function toggleSettingsPanel() {
+    if (!IS_EDIT) return;
     const panel = document.getElementById('settingsPanel');
     const visible = panel.style.display !== 'none';
     panel.style.display = visible ? 'none' : 'block';
@@ -211,7 +232,7 @@ document.body.appendChild(editPopup);
 let currentEditTarget = null;
 let currentEditType = null;
 
-function enterEditMode() {
+function enterEditMode() { if (!IS_EDIT) return;
     editMode = true;
     document.body.classList.add('edit-mode');
     document.getElementById('editOverlay').style.display = 'block';
@@ -221,6 +242,7 @@ function enterEditMode() {
 }
 
 function toggleEditMode() {
+    if (!IS_EDIT) return;
     if (editMode) {
         editMode = false;
         document.body.classList.remove('edit-mode');
@@ -242,7 +264,7 @@ function saveEdits() {
 
 // Click handler for editable elements
 document.addEventListener('click', (e) => {
-    if (!editMode) return;
+    if (!IS_EDIT || !editMode) return;
     e.preventDefault(); e.stopPropagation();
 
     const editable = e.target.closest('[data-editable]');
