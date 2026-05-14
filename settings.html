@@ -9,18 +9,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0a0a0f;
-            --bg2: #12121a;
-            --text: #e8e8f0;
-            --text-dim: #888899;
-            --accent: #c8a2e8;
-            --accent2: #ff7eb3;
-            --border: rgba(255,255,255,0.08);
-            --card-bg: rgba(255,255,255,0.03);
+        [data-theme="dark"] {
+            --bg: #0a0a0f; --bg2: #12121a; --text: #e8e8f0; --text-dim: #888899;
+            --accent: #c8a2e8; --accent2: #ff7eb3;
+            --border: rgba(255,255,255,0.08); --card-bg: rgba(255,255,255,0.03);
+        }
+        [data-theme="light"] {
+            --bg: #f8f6f3; --bg2: #eeecea; --text: #2a2a35; --text-dim: #888890;
+            --accent: #a67dd6; --accent2: #e8608a;
+            --border: rgba(0,0,0,0.1); --card-bg: rgba(0,0,0,0.03);
+        }
+        [data-theme="lavender"] {
+            --bg: #e8e0f0; --bg2: #ddd4ec; --text: #2d1f4e; --text-dim: #7a6b9a;
+            --accent: #7b5ea7; --accent2: #b06cc7;
+            --border: rgba(123,94,167,0.15); --card-bg: rgba(123,94,167,0.08);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.4s, color 0.4s; }
         a { color: var(--accent); text-decoration: none; }
         img { display: block; max-width: 100%; }
 
@@ -237,6 +242,8 @@
                     <input type="text" id="newGalleryImg" placeholder="images/xxx.jpg" style="flex:1">
                     <select id="newGalleryTall" style="width:80px;flex:none"><option value="0">普通</option><option value="1">高(tall)</option></select>
                     <button class="btn" onclick="addGalleryImage()">+ 添加</button>
+                    <input type="file" id="galleryFileInput" accept="image/*" style="display:none" onchange="uploadGalleryImage(this)">
+                    <button class="btn" onclick="document.getElementById('galleryFileInput').click()">📁 上传</button>
                 </div>
                 <div id="galleryImageList"></div>
             </div>
@@ -471,6 +478,25 @@
             document.getElementById('newGalleryImg').value = '';
             renderGalleryList();
             showToast('已添加');
+        }
+
+        async function uploadGalleryImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const form = new FormData();
+            form.append('file', file);
+            try {
+                const resp = await fetch('/api/upload', { method: 'POST', body: form });
+                const data = await resp.json();
+                if (data.paths && data.paths[0]) {
+                    document.getElementById('newGalleryImg').value = data.paths[0];
+                    showToast('上传成功');
+                } else {
+                    showToast('上传失败: ' + (data.error || '未知错误'));
+                }
+            } catch (e) {
+                showToast('上传失败: ' + e.message);
+            }
         }
 
         function previewSettings() {
