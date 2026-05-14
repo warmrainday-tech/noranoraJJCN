@@ -1,5 +1,12 @@
 // 绫月乃萝 Fan Site — main.js
 
+// ===== 主题 =====
+(function initTheme() {
+    const saved = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+    const theme = saved.theme || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+})();
+
 // ===== 侧边导航 =====
 const navToggle = document.getElementById('navToggle');
 const sideNav = document.getElementById('sideNav');
@@ -102,6 +109,9 @@ function buildEmojiWaterfall() {
     for (let col = 0; col < columnCount; col++) {
         const colEl = document.createElement('div');
         colEl.className = 'emoji-column' + (col % 2 === 1 ? ' reverse' : '');
+        const direction = emojiSettings.direction || 'vertical';
+        if (direction === 'diagonal-left') colEl.classList.add('diagonal-left');
+        if (direction === 'diagonal-right') colEl.classList.add('diagonal-right');
         const duration = baseSpeed + (Math.random() - 0.5) * 15;
         colEl.style.setProperty('--scroll-duration', duration + 's');
 

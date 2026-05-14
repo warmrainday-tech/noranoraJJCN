@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -131,6 +131,28 @@
             <a href="index.html" class="back-link">← BACK</a>
         </div>
 
+        <!-- 主题 -->
+        <div class="section">
+            <h2>THEME</h2>
+            <div class="mode-switch">
+                <div class="mode-card" data-theme="dark" onclick="selectTheme('dark')">
+                    <div class="preview" style="background:#0a0a0f;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🌙</div>
+                    <h3>DARK</h3>
+                    <p>暗色 · 默认</p>
+                </div>
+                <div class="mode-card" data-theme="light" onclick="selectTheme('light')">
+                    <div class="preview" style="background:#f8f6f3;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">☀️</div>
+                    <h3>LIGHT</h3>
+                    <p>暖白亮色</p>
+                </div>
+                <div class="mode-card" data-theme="lavender" onclick="selectTheme('lavender')">
+                    <div class="preview" style="background:#e8e0f0;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">💜</div>
+                    <h3>LAVENDER</h3>
+                    <p>薰衣草淡紫</p>
+                </div>
+            </div>
+        </div>
+
         <!-- 首页模式 -->
         <div class="section">
             <h2>HOME MODE</h2>
@@ -210,6 +232,13 @@
                 <tr><th>列数</th><td><input type="number" id="emojiCols" value="12" min="4" max="20"></td></tr>
                 <tr><th>滚动速度</th><td><input type="number" id="emojiSpeed" value="30" min="10" max="60"> 秒 (越小越快)</td></tr>
                 <tr><th>透明度</th><td><input type="number" id="emojiOpacity" value="0.6" min="0.1" max="1" step="0.1"></td></tr>
+                <tr><th>滚动方向</th><td>
+                    <select id="emojiDirection">
+                        <option value="vertical">垂直</option>
+                        <option value="diagonal-left">左斜</option>
+                        <option value="diagonal-right">右斜</option>
+                    </select>
+                </td></tr>
             </table>
         </div>
 
@@ -251,9 +280,19 @@
             localStorage.setItem('nora_hero_image', src);
         }
 
+        // ===== Theme =====
+        function selectTheme(theme) {
+            document.querySelectorAll('.mode-card[data-theme]').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.mode-card[data-theme="${theme}"]`).classList.add('active');
+            document.documentElement.setAttribute('data-theme', theme);
+            const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+            settings.theme = theme;
+            localStorage.setItem('nora_settings', JSON.stringify(settings));
+        }
+
         // ===== Mode =====
         function selectMode(mode) {
-            document.querySelectorAll('.mode-card').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.mode-card[data-mode]').forEach(el => el.classList.remove('active'));
             document.querySelector(`.mode-card[data-mode="${mode}"]`).classList.add('active');
             localStorage.setItem('nora_home_mode', mode);
             // 显示/隐藏hero image section
@@ -289,6 +328,7 @@
                     cols: document.getElementById('emojiCols').value,
                     speed: document.getElementById('emojiSpeed').value,
                     opacity: document.getElementById('emojiOpacity').value,
+                    direction: document.getElementById('emojiDirection').value,
                 },
             };
         }
@@ -322,6 +362,7 @@
                 if (s.emoji.cols) document.getElementById('emojiCols').value = s.emoji.cols;
                 if (s.emoji.speed) document.getElementById('emojiSpeed').value = s.emoji.speed;
                 if (s.emoji.opacity) document.getElementById('emojiOpacity').value = s.emoji.opacity;
+                if (s.emoji.direction) document.getElementById('emojiDirection').value = s.emoji.direction;
             }
         }
 
@@ -348,6 +389,11 @@
         }
 
         // ===== Init =====
+        const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+        const savedTheme = settings.theme || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.querySelector(`.mode-card[data-theme="${savedTheme}"]`)?.classList.add('active');
+
         const savedMode = localStorage.getItem('nora_home_mode') || 'art';
         selectMode(savedMode);
         buildHeroImageGrid();
