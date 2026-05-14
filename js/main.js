@@ -175,6 +175,35 @@ applyHomeMode(savedMode);
     }).join('');
 })();
 
+// ===== 动态 Movies =====
+(function renderMovies() {
+    const grid = document.getElementById('videosGrid');
+    if (!grid) return;
+    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+    if (!settings.movies || !settings.movies.length) return;
+    grid.innerHTML = settings.movies.map(m => `
+        <a href="${m.link}" target="_blank" class="video-card">
+            <div class="video-thumb">
+                <img src="${m.src}" alt="">
+                <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
+            </div>
+        </a>
+    `).join('');
+})();
+
+// ===== 动态 Goods =====
+(function renderGoods() {
+    const grid = document.getElementById('goodsGrid');
+    if (!grid) return;
+    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+    if (!settings.goods || !settings.goods.length) return;
+    grid.innerHTML = settings.goods.map(g => `
+        <a href="${g.link}" target="_blank" class="goods-card">
+            <div class="goods-thumb"><img src="${g.src}" alt=""></div>
+        </a>
+    `).join('');
+})();
+
 // ===== 滚动动画 =====
 const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {

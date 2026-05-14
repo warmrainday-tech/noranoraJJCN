@@ -266,6 +266,32 @@
             </table>
         </div>
 
+        <!-- MOVIE 管理 -->
+        <div class="section">
+            <h2>MOVIE</h2>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+                <input type="text" id="newMovieImg" placeholder="图片URL" style="flex:1">
+                <input type="text" id="newMovieLink" placeholder="跳转链接" style="flex:1">
+                <input type="file" id="movieFileInput" accept="image/*" style="display:none" onchange="uploadMovieImage(this)">
+                <button class="btn" onclick="document.getElementById('movieFileInput').click()">📁</button>
+                <button class="btn" onclick="addMovieItem()">+ 添加</button>
+            </div>
+            <div id="movieItemList"></div>
+        </div>
+
+        <!-- GOODS 管理 -->
+        <div class="section">
+            <h2>GOODS</h2>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+                <input type="text" id="newGoodsImg" placeholder="图片URL" style="flex:1">
+                <input type="text" id="newGoodsLink" placeholder="跳转链接" style="flex:1">
+                <input type="file" id="goodsFileInput" accept="image/*" style="display:none" onchange="uploadGoodsImage(this)">
+                <button class="btn" onclick="document.getElementById('goodsFileInput').click()">📁</button>
+                <button class="btn" onclick="addGoodsItem()">+ 添加</button>
+            </div>
+            <div id="goodsItemList"></div>
+        </div>
+
         <div class="btn-row">
             <button class="btn-primary btn" onclick="saveSettings()">SAVE</button>
             <button class="btn" onclick="resetSettings()">RESET</button>
@@ -499,6 +525,113 @@
             }
         }
 
+        // ===== MOVIE management =====
+        const DEFAULT_MOVIES = [
+            { src: 'images/vid_1.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/vid_3.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/vid_4.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/vid_6.jpg', link: 'https://space.bilibili.com/86471108' },
+        ];
+
+        function getMovies() {
+            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+            if (s.movies) return s.movies;
+            return JSON.parse(JSON.stringify(DEFAULT_MOVIES));
+        }
+        function saveMovies(arr) {
+            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+            s.movies = arr;
+            localStorage.setItem('nora_settings', JSON.stringify(s));
+        }
+        function renderMovieList() {
+            const list = document.getElementById('movieItemList');
+            const items = getMovies();
+            list.innerHTML = items.map((m, i) => `
+                <div class="gallery-img-row">
+                    <div class="thumb"><img src="${m.src}" alt="" onerror="this.style.display='none'"></div>
+                    <input type="text" value="${m.src.replace(/"/g,'&quot;')}" oninput="updateMovieSrc(${i},this.value)" style="flex:1">
+                    <input type="text" value="${m.link.replace(/"/g,'&quot;')}" oninput="updateMovieLink(${i},this.value)" style="flex:1">
+                    <button class="btn btn-sm btn-danger" onclick="removeMovieItem(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+        function updateMovieSrc(idx, v) { const m = getMovies(); m[idx].src = v.trim(); saveMovies(m); }
+        function updateMovieLink(idx, v) { const m = getMovies(); m[idx].link = v.trim(); saveMovies(m); }
+        function removeMovieItem(idx) { const m = getMovies(); m.splice(idx,1); saveMovies(m); renderMovieList(); }
+        function addMovieItem() {
+            const src = document.getElementById('newMovieImg').value.trim();
+            const link = document.getElementById('newMovieLink').value.trim();
+            if (!src) { showToast('请输入图片URL'); return; }
+            const m = getMovies();
+            m.push({ src, link: link || '#' });
+            saveMovies(m);
+            document.getElementById('newMovieImg').value = '';
+            document.getElementById('newMovieLink').value = '';
+            renderMovieList();
+            showToast('已添加');
+        }
+        async function uploadMovieImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const form = new FormData(); form.append('file', file);
+            try {
+                const resp = await fetch('/api/upload', { method:'POST', body:form });
+                const data = await resp.json();
+                if (data.paths && data.paths[0]) { document.getElementById('newMovieImg').value = data.paths[0]; showToast('上传成功'); }
+                else showToast('上传失败');
+            } catch(e) { showToast('上传失败: '+e.message); }
+        }
+
+        // ===== GOODS management =====
+        function getGoods() {
+            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+            if (s.goods) return s.goods;
+            return [];
+        }
+        function saveGoods(arr) {
+            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+            s.goods = arr;
+            localStorage.setItem('nora_settings', JSON.stringify(s));
+        }
+        function renderGoodsList() {
+            const list = document.getElementById('goodsItemList');
+            const items = getGoods();
+            list.innerHTML = items.map((g, i) => `
+                <div class="gallery-img-row">
+                    <div class="thumb"><img src="${g.src}" alt="" onerror="this.style.display='none'"></div>
+                    <input type="text" value="${g.src.replace(/"/g,'&quot;')}" oninput="updateGoodsSrc(${i},this.value)" style="flex:1">
+                    <input type="text" value="${g.link.replace(/"/g,'&quot;')}" oninput="updateGoodsLink(${i},this.value)" style="flex:1">
+                    <button class="btn btn-sm btn-danger" onclick="removeGoodsItem(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+        function updateGoodsSrc(idx, v) { const g = getGoods(); g[idx].src = v.trim(); saveGoods(g); }
+        function updateGoodsLink(idx, v) { const g = getGoods(); g[idx].link = v.trim(); saveGoods(g); }
+        function removeGoodsItem(idx) { const g = getGoods(); g.splice(idx,1); saveGoods(g); renderGoodsList(); }
+        function addGoodsItem() {
+            const src = document.getElementById('newGoodsImg').value.trim();
+            const link = document.getElementById('newGoodsLink').value.trim();
+            if (!src) { showToast('请输入图片URL'); return; }
+            const g = getGoods();
+            g.push({ src, link: link || '#' });
+            saveGoods(g);
+            document.getElementById('newGoodsImg').value = '';
+            document.getElementById('newGoodsLink').value = '';
+            renderGoodsList();
+            showToast('已添加');
+        }
+        async function uploadGoodsImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const form = new FormData(); form.append('file', file);
+            try {
+                const resp = await fetch('/api/upload', { method:'POST', body:form });
+                const data = await resp.json();
+                if (data.paths && data.paths[0]) { document.getElementById('newGoodsImg').value = data.paths[0]; showToast('上传成功'); }
+                else showToast('上传失败');
+            } catch(e) { showToast('上传失败: '+e.message); }
+        }
+
         function previewSettings() {
             saveSettings();
             window.open('index.html', '_blank');
@@ -522,6 +655,8 @@
         buildHeroImageGrid();
         loadSettings();
         renderGalleryList();
+        renderMovieList();
+        renderGoodsList();
     </script>
 </body>
 </html>
