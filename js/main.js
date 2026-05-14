@@ -127,6 +127,14 @@ function buildEmojiWaterfall() {
         });
         container.appendChild(colEl);
     }
+
+    // 斜向模式：容器扩展宽度填满旋转空白
+    const dir = emojiSettings.direction || 'vertical';
+    if (dir === 'diagonal-left' || dir === 'diagonal-right') {
+        container.classList.add('diagonal-mode');
+    } else {
+        container.classList.remove('diagonal-mode');
+    }
 }
 
 // ===== 首页模式切换 =====

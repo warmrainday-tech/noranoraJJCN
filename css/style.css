@@ -646,7 +646,11 @@ a:hover { color: var(--accent2); }
     100% { transform: translateY(-50%); }
 }
 
-/* 斜向滚动 */
+/* 斜向滚动 — 往左右延伸填满旋转空白 */
+.emoji-waterfall.diagonal-mode {
+    width: 130%;
+    left: -15%;
+}
 .emoji-column.diagonal-left {
     animation-name: emojiScrollDiagonalLeft;
     animation-duration: calc(var(--scroll-duration, 30s) * 1.3);
