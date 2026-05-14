@@ -115,6 +115,14 @@
             border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
         }
 
+        /* Gallery image row */
+        .gallery-img-row { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border); }
+        .gallery-img-row .thumb { width:50px;height:50px;border-radius:4px;overflow:hidden;flex-shrink:0;background:var(--bg2); }
+        .gallery-img-row .thumb img { width:100%;height:100%;object-fit:cover; }
+        .gallery-img-row input[type="text"] { flex:1; }
+        .gallery-img-row .tall-badge { font-size:0.65rem;padding:2px 6px;border-radius:10px;background:var(--accent);color:white;margin-right:4px; }
+        .gallery-img-row .btn-sm { font-size:0.7rem;padding:4px 10px; }
+
         .toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
             background: var(--accent); color: white; padding: 12px 30px; border-radius: 50px;
@@ -223,6 +231,15 @@
                 </td></tr>
                 <tr><th>间距</th><td><input type="number" id="galleryGap" value="16" min="0" max="40"> px</td></tr>
             </table>
+            <div style="margin-top:20px">
+                <h3 style="font-size:0.8rem;color:var(--text-dim);margin-bottom:10px">图片列表</h3>
+                <div style="display:flex;gap:8px;margin-bottom:10px">
+                    <input type="text" id="newGalleryImg" placeholder="images/xxx.jpg" style="flex:1">
+                    <select id="newGalleryTall" style="width:80px;flex:none"><option value="0">普通</option><option value="1">高(tall)</option></select>
+                    <button class="btn" onclick="addGalleryImage()">+ 添加</button>
+                </div>
+                <div id="galleryImageList"></div>
+            </div>
         </div>
 
         <!-- Emoji瀑布设置 -->
@@ -335,6 +352,9 @@
 
         function saveSettings() {
             const s = getSettings();
+            // 保留已保存的 galleryImages，防止被覆盖
+            const old = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+            if (old.galleryImages) s.galleryImages = old.galleryImages;
             localStorage.setItem('nora_settings', JSON.stringify(s));
             showToast('设置已保存 ✓');
         }
@@ -376,6 +396,83 @@
             }
         }
 
+        // ===== Gallery image management =====
+        const DEFAULT_GALLERY = [
+            { src: 'images/pixiv_hd_2.jpg', tall: true },
+            { src: 'images/pixiv_hd_3.jpg', tall: false },
+            { src: 'images/pixiv_hd_4.jpg', tall: false },
+            { src: 'images/pixiv_hd_5.jpg', tall: true },
+            { src: 'images/pixiv_hd_6.jpg', tall: false },
+            { src: 'images/pixiv_hd_7.jpg', tall: false },
+            { src: 'images/pixiv_hd_8.jpg', tall: false },
+            { src: 'images/pixiv_hd_9.jpg', tall: true },
+            { src: 'images/pixiv_hd_10.jpg', tall: false },
+            { src: 'images/pixiv_hd_11.jpg', tall: false },
+            { src: 'images/pixiv_hd_12.jpg', tall: false },
+            { src: 'images/pixiv_hd_13.jpg', tall: true },
+            { src: 'images/hd_cover1.jpg', tall: false },
+            { src: 'images/hd_cover2.jpg', tall: false },
+        ];
+
+        function getGalleryImages() {
+            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+            if (s.galleryImages && s.galleryImages.length) return s.galleryImages;
+            return JSON.parse(JSON.stringify(DEFAULT_GALLERY));
+        }
+
+        function saveGalleryImages(images) {
+            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+            s.galleryImages = images;
+            localStorage.setItem('nora_settings', JSON.stringify(s));
+        }
+
+        function renderGalleryList() {
+            const list = document.getElementById('galleryImageList');
+            const images = getGalleryImages();
+            list.innerHTML = images.map((img, i) => `
+                <div class="gallery-img-row">
+                    <div class="thumb"><img src="${img.src}" alt="" onerror="this.style.display='none'"></div>
+                    <input type="text" value="${img.src.replace(/"/g, '&quot;')}" oninput="updateGallerySrc(${i}, this.value)">
+                    ${img.tall ? '<span class="tall-badge">TALL</span>' : ''}
+                    <button class="btn btn-sm" onclick="toggleGalleryTall(${i})" style="width:28px">↕</button>
+                    <button class="btn btn-sm btn-danger" onclick="removeGalleryImage(${i})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function updateGallerySrc(idx, value) {
+            const images = getGalleryImages();
+            images[idx].src = value.trim();
+            saveGalleryImages(images);
+        }
+
+        function toggleGalleryTall(idx) {
+            const images = getGalleryImages();
+            images[idx].tall = !images[idx].tall;
+            saveGalleryImages(images);
+            renderGalleryList();
+        }
+
+        function removeGalleryImage(idx) {
+            const images = getGalleryImages();
+            images.splice(idx, 1);
+            saveGalleryImages(images);
+            renderGalleryList();
+            showToast('已删除');
+        }
+
+        function addGalleryImage() {
+            const url = document.getElementById('newGalleryImg').value.trim();
+            if (!url) { showToast('请输入图片URL'); return; }
+            const tall = document.getElementById('newGalleryTall').value === '1';
+            const images = getGalleryImages();
+            images.push({ src: url, tall });
+            saveGalleryImages(images);
+            document.getElementById('newGalleryImg').value = '';
+            renderGalleryList();
+            showToast('已添加');
+        }
+
         function previewSettings() {
             saveSettings();
             window.open('index.html', '_blank');
@@ -398,6 +495,7 @@
         selectMode(savedMode);
         buildHeroImageGrid();
         loadSettings();
+        renderGalleryList();
     </script>
 </body>
 </html>

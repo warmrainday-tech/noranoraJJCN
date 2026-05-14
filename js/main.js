@@ -164,6 +164,17 @@ if (savedHeroImage && document.getElementById('heroBg')) {
 
 applyHomeMode(savedMode);
 
+// ===== 动态画廊 =====
+(function renderGallery() {
+    const grid = document.getElementById('masonryGrid');
+    if (!grid) return;
+    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+    if (!settings.galleryImages || !settings.galleryImages.length) return; // 用默认HTML
+    grid.innerHTML = settings.galleryImages.map(img => {
+        return `<div class="masonry-item${img.tall ? ' tall' : ''}"><img src="${img.src}" alt="" loading="lazy"></div>`;
+    }).join('');
+})();
+
 // ===== 滚动动画 =====
 const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
