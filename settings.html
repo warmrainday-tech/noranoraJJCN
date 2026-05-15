@@ -101,16 +101,19 @@
 
         .btn-row { display: flex; gap: 12px; margin-top: 30px; }
         .btn {
-            padding: 12px 30px; border-radius: 50px; font-size: 0.85rem; cursor: pointer;
-            font-family: 'Montserrat', sans-serif; font-weight: 600; letter-spacing: 0.1em;
-            transition: all 0.3s; border: 1px solid var(--border); background: transparent; color: var(--text);
+            padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;
+            font-family: inherit; transition: all 0.3s;
+            border: 1px solid var(--border); background: var(--bg2); color: var(--text);
         }
         .btn:hover { border-color: var(--accent); color: var(--accent); }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            border: none; color: white;
+        .btn-sm {
+            padding: 4px 8px; font-size: 0.7rem; border: none; background: transparent;
+            color: var(--text-dim);
         }
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-sm:hover { color: var(--accent); }
+        .btn-sm.btn-danger { color: #e06070; }
+        .btn-sm.btn-danger:hover { color: #ff4040; }
+        .btn-primary { display:none; }
 
         /* Image Grid (for hero bg selection) */
         .image-grid {
@@ -469,8 +472,8 @@
                     <div class="thumb"><img src="${img.src}" alt="" onerror="this.style.display='none'"></div>
                     <input type="text" value="${img.src.replace(/"/g, '&quot;')}" oninput="updateGallerySrc(${i}, this.value)">
                     ${img.tall ? '<span class="tall-badge">TALL</span>' : ''}
-                    <button class="btn btn-sm" onclick="toggleGalleryTall(${i})" style="width:28px">↕</button>
-                    <button class="btn btn-sm btn-danger" onclick="removeGalleryImage(${i})">✕</button>
+                    <button class="btn btn-sm" onclick="toggleGalleryTall(${i})" style="width:28px;font-size:1rem">↕</button>
+                    <button class="btn btn-sm btn-danger" onclick="removeGalleryImage(${i})" style="font-size:1rem">✕</button>
                 </div>
             `).join('');
         }
@@ -553,7 +556,7 @@
                     <div class="thumb"><img src="${m.src}" alt="" onerror="this.style.display='none'"></div>
                     <input type="text" value="${m.src.replace(/"/g,'&quot;')}" oninput="updateMovieSrc(${i},this.value)" style="flex:1">
                     <input type="text" value="${m.link.replace(/"/g,'&quot;')}" oninput="updateMovieLink(${i},this.value)" style="flex:1">
-                    <button class="btn btn-sm btn-danger" onclick="removeMovieItem(${i})">✕</button>
+                    <button class="btn btn-sm btn-danger" onclick="removeMovieItem(${i})" style="font-size:1rem">✕</button>
                 </div>
             `).join('');
         }
@@ -603,7 +606,7 @@
                     <div class="thumb"><img src="${g.src}" alt="" onerror="this.style.display='none'"></div>
                     <input type="text" value="${g.src.replace(/"/g,'&quot;')}" oninput="updateGoodsSrc(${i},this.value)" style="flex:1">
                     <input type="text" value="${g.link.replace(/"/g,'&quot;')}" oninput="updateGoodsLink(${i},this.value)" style="flex:1">
-                    <button class="btn btn-sm btn-danger" onclick="removeGoodsItem(${i})">✕</button>
+                    <button class="btn btn-sm btn-danger" onclick="removeGoodsItem(${i})" style="font-size:1rem">✕</button>
                 </div>
             `).join('');
         }
