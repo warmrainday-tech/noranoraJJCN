@@ -520,20 +520,12 @@
         async function uploadGalleryImage(input) {
             const file = input.files[0];
             if (!file) return;
-            const form = new FormData();
-            form.append('file', file);
-            try {
-                const resp = await fetch('/api/upload', { method: 'POST', body: form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) {
-                    document.getElementById('newGalleryImg').value = data.paths[0];
-                    showToast('上传成功');
-                } else {
-                    showToast('上传失败: ' + (data.error || '未知错误'));
-                }
-            } catch (e) {
-                showToast('上传失败: ' + e.message);
-            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                document.getElementById('newGalleryImg').value = reader.result;
+                showToast('已读取图片');
+            };
+            reader.readAsDataURL(file);
         }
 
         // ===== MOVIE management =====
@@ -584,29 +576,22 @@
         async function uploadMovieImage(input) {
             const file = input.files[0];
             if (!file) return;
-            const form = new FormData(); form.append('file', file);
-            try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) { document.getElementById('newMovieImg').value = data.paths[0]; showToast('上传成功'); }
-                else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
+            const reader = new FileReader();
+            reader.onload = () => { document.getElementById('newMovieImg').value = reader.result; showToast('已读取图片'); };
+            reader.readAsDataURL(file);
         }
 
         // Avatar upload
         async function uploadAvatarImage(input) {
             const file = input.files[0];
             if (!file) return;
-            const form = new FormData(); form.append('file', file);
-            try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) {
-                    document.getElementById('profileAvatar').value = data.paths[0];
-                    autoSaveSettings();
-                    showToast('上传成功');
-                } else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
+            const reader = new FileReader();
+            reader.onload = () => {
+                document.getElementById('profileAvatar').value = reader.result;
+                autoSaveSettings();
+                showToast('已读取图片');
+            };
+            reader.readAsDataURL(file);
         }
 
         // ===== GOODS management =====
@@ -650,18 +635,9 @@
         async function uploadGoodsImage(input) {
             const file = input.files[0];
             if (!file) return;
-            const form = new FormData(); form.append('file', file);
-            try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) { document.getElementById('newGoodsImg').value = data.paths[0]; showToast('上传成功'); }
-                else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
-        }
-
-        function previewSettings() {
-            saveSettings();
-            window.open('index.html', '_blank');
+            const reader = new FileReader();
+            reader.onload = () => { document.getElementById('newGoodsImg').value = reader.result; showToast('已读取图片'); };
+            reader.readAsDataURL(file);
         }
 
         function showToast(msg) {
