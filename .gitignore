@@ -7,3 +7,10 @@ screenshot_*.png
 ss_*.png
 images/uploads/
 js/token.txt
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
