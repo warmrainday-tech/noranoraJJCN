@@ -197,6 +197,23 @@
             </div>
         </div>
 
+        <!-- Emoji瀑布设置 -->
+        <div class="section">
+            <h2>EMOJI WATERFALL</h2>
+            <table class="config-table">
+                <tr><th>列数</th><td><input type="number" id="emojiCols" value="12" min="4" max="20" onchange="autoSaveSettings()"></td></tr>
+                <tr><th>滚动速度</th><td><input type="number" id="emojiSpeed" value="30" min="10" max="60" onchange="autoSaveSettings()"> 秒 (越小越快)</td></tr>
+                <tr><th>透明度</th><td><input type="number" id="emojiOpacity" value="0.6" min="0.1" max="1" step="0.1" onchange="autoSaveSettings()"></td></tr>
+                <tr><th>滚动方向</th><td>
+                    <select id="emojiDirection" onchange="autoSaveSettings()">
+                        <option value="vertical">垂直</option>
+                        <option value="diagonal-left">左斜</option>
+                        <option value="diagonal-right">右斜</option>
+                    </select>
+                </td></tr>
+            </table>
+        </div>
+
         <!-- Hero背景图 -->
         <div class="section" id="heroImageSection">
             <h2>HERO IMAGE</h2>
@@ -254,23 +271,6 @@
                 </div>
                 <div id="galleryImageList"></div>
             </div>
-        </div>
-
-        <!-- Emoji瀑布设置 -->
-        <div class="section">
-            <h2>EMOJI WATERFALL</h2>
-            <table class="config-table">
-                <tr><th>列数</th><td><input type="number" id="emojiCols" value="12" min="4" max="20" onchange="autoSaveSettings()"></td></tr>
-                <tr><th>滚动速度</th><td><input type="number" id="emojiSpeed" value="30" min="10" max="60" onchange="autoSaveSettings()"> 秒 (越小越快)</td></tr>
-                <tr><th>透明度</th><td><input type="number" id="emojiOpacity" value="0.6" min="0.1" max="1" step="0.1" onchange="autoSaveSettings()"></td></tr>
-                <tr><th>滚动方向</th><td>
-                    <select id="emojiDirection" onchange="autoSaveSettings()">
-                        <option value="vertical">垂直</option>
-                        <option value="diagonal-left">左斜</option>
-                        <option value="diagonal-right">右斜</option>
-                    </select>
-                </td></tr>
-            </table>
         </div>
 
         <!-- MOVIE 管理 -->
