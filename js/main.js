@@ -233,6 +233,12 @@ applyHomeMode(savedMode);
             if (key && p[key]) td.textContent = p[key];
         });
     }
+
+    // 头像
+    if (p.avatar) {
+        const avatarImg = document.querySelector('.profile-avatar img');
+        if (avatarImg) avatarImg.src = p.avatar;
+    }
 })();
 
 // ===== 滚动动画 =====
