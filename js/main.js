@@ -102,14 +102,14 @@ function buildEmojiWaterfall() {
 
     const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
     const emojiSettings = settings.emoji || {};
-    const columnCount = parseInt(emojiSettings.cols) || (window.innerWidth < 600 ? 6 : window.innerWidth < 1000 ? 8 : 12);
+    const columnCount = parseInt(emojiSettings.cols) || 15;
     const baseSpeed = parseInt(emojiSettings.speed) || 30;
     const imgOpacity = parseFloat(emojiSettings.opacity) || 0.6;
 
     for (let col = 0; col < columnCount; col++) {
         const colEl = document.createElement('div');
         colEl.className = 'emoji-column' + (col % 2 === 1 ? ' reverse' : '');
-        const direction = emojiSettings.direction || 'vertical';
+        const direction = emojiSettings.direction || 'diagonal-right';
         if (direction === 'diagonal-left') colEl.classList.add('diagonal-left');
         if (direction === 'diagonal-right') colEl.classList.add('diagonal-right');
         const duration = baseSpeed + (Math.random() - 0.5) * 15;
@@ -155,7 +155,7 @@ function applyHomeMode(mode) {
 // 读取保存的模式和设置
 const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
 const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-const savedHeroImage = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
+const savedHeroImage = localStorage.getItem('nora_hero_image') || 'https://cdn.jsdelivr.net/gh/warmrainday-tech/noranoraJJCN/images/pixiv_hd_1.jpg';
 
 // 应用Hero背景图
 if (savedHeroImage && document.getElementById('heroBg')) {

@@ -204,14 +204,14 @@
         <div class="section" id="emojiSection">
             <h2>EMOJI WATERFALL</h2>
             <table class="config-table">
-                <tr><th>列数</th><td><input type="number" id="emojiCols" value="12" min="4" max="20" onchange="autoSaveSettings()"></td></tr>
+                <tr><th>列数</th><td><input type="number" id="emojiCols" value="15" min="4" max="20" onchange="autoSaveSettings()"></td></tr>
                 <tr><th>滚动速度</th><td><input type="number" id="emojiSpeed" value="30" min="10" max="60" onchange="autoSaveSettings()"></td></tr>
                 <tr><th>透明度</th><td><input type="number" id="emojiOpacity" value="0.6" min="0.1" max="1" step="0.1" onchange="autoSaveSettings()"></td></tr>
                 <tr><th>滚动方向</th><td>
                     <select id="emojiDirection" onchange="autoSaveSettings()">
                         <option value="vertical">垂直</option>
                         <option value="diagonal-left">左斜</option>
-                        <option value="diagonal-right">右斜</option>
+                        <option value="diagonal-right" selected>右斜</option>
                     </select>
                 </td></tr>
             </table>
@@ -241,9 +241,9 @@
                 <tr><th>名前</th><td><input type="text" id="profileName" value="綾月乃蘿" oninput="autoSaveSettings()"></td></tr>
                 <tr><th>EN NAME</th><td><input type="text" id="profileNameEn" value="Ayatsuki Nora" oninput="autoSaveSettings()"></td></tr>
                 <tr><th>TAGLINE</th><td><input type="text" id="profileTagline" value="イラストレーター × 配信者" oninput="autoSaveSettings()"></td></tr>
-                <tr><th>誕生日</th><td><input type="text" id="profileBday" value="4月21日" oninput="autoSaveSettings()"></td></tr>
-                <tr><th>種族</th><td><input type="text" id="profileRace" value="猫猫" oninput="autoSaveSettings()"></td></tr>
-                <tr><th>特性</th><td><input type="text" id="profileTrait" value="豆豆眉" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>誕生日</th><td><input type="text" id="profileBday" value="04月21日" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>種族</th><td><input type="text" id="profileRace" value="野猫" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>特性</th><td><input type="text" id="profileTrait" value="两只豆豆眉" oninput="autoSaveSettings()"></td></tr>
                 <tr><th>言語</th><td><input type="text" id="profileLang" value="中文 / 日本語" oninput="autoSaveSettings()"></td></tr>
                 <tr><th>活動</th><td><input type="text" id="profileActivity" value="イラスト制作 × ライブ配信" oninput="autoSaveSettings()"></td></tr>
                 <tr><th>简介</th><td><input type="text" id="profileDesc" value="猫猫画師兼職虛擬主播，你的賽博損友！" oninput="autoSaveSettings()"></td></tr>
@@ -442,20 +442,15 @@
 
         // ===== Gallery image management =====
         const DEFAULT_GALLERY = [
-            { src: 'images/pixiv_hd_2.jpg', tall: true },
+            { src: 'https://cdn.jsdelivr.net/gh/warmrainday-tech/noranoraJJCN/images/pixiv_hd_1.jpg', tall: true },
             { src: 'images/pixiv_hd_3.jpg', tall: false },
             { src: 'images/pixiv_hd_4.jpg', tall: false },
             { src: 'images/pixiv_hd_5.jpg', tall: true },
             { src: 'images/pixiv_hd_6.jpg', tall: false },
             { src: 'images/pixiv_hd_7.jpg', tall: false },
-            { src: 'images/pixiv_hd_8.jpg', tall: false },
             { src: 'images/pixiv_hd_9.jpg', tall: true },
             { src: 'images/pixiv_hd_10.jpg', tall: false },
-            { src: 'images/pixiv_hd_11.jpg', tall: false },
             { src: 'images/pixiv_hd_12.jpg', tall: false },
-            { src: 'images/pixiv_hd_13.jpg', tall: true },
-            { src: 'images/hd_cover1.jpg', tall: false },
-            { src: 'images/hd_cover2.jpg', tall: false },
         ];
 
         function getGalleryImages() {
@@ -572,10 +567,10 @@
 
         // ===== MOVIE management =====
         const DEFAULT_MOVIES = [
-            { src: 'images/vid_1.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_3.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_4.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_6.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/vid_1.jpg', link: 'https://www.bilibili.com/video/BV1TXnSzXE8N' },
+            { src: 'images/vid_5.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/vid_7.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/vid_8.jpg', link: 'https://space.bilibili.com/86471108' },
         ];
 
         function getMovies() {
@@ -637,10 +632,17 @@
         }
 
         // ===== GOODS management =====
+        const DEFAULT_GOODS = [
+            { src: 'images/goods_1.png', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/goods_2.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/goods_3.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'images/goods_4.jpg', link: 'https://space.bilibili.com/86471108' },
+        ];
+
         function getGoods() {
             const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            if (s.goods) return s.goods;
-            return [];
+            if (s.goods && s.goods.length) return s.goods;
+            return JSON.parse(JSON.stringify(DEFAULT_GOODS));
         }
         function saveGoods(arr) {
             const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
