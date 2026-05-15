@@ -74,6 +74,16 @@
         }
         .mode-card p { font-size: 0.8rem; color: var(--text-dim); }
 
+        /* Theme swatch (色卡) */
+        .theme-swatch { padding: 0; overflow: hidden; }
+        .theme-swatch .swatch { width: 100%; height: 80px; border-radius: 10px 10px 0 0; }
+        .theme-swatch span {
+            display: block; text-align: center; padding: 10px 0;
+            font-family: 'Montserrat', sans-serif; font-size: 0.8rem;
+            font-weight: 600; letter-spacing: 0.1em; color: var(--text-dim);
+        }
+        .theme-swatch.active span { color: var(--accent); }
+
         /* Config Table */
         .config-table { width: 100%; border-collapse: collapse; }
         .config-table th, .config-table td {
@@ -148,20 +158,17 @@
         <div class="section">
             <h2>THEME</h2>
             <div class="mode-switch">
-                <div class="mode-card" data-theme="dark" onclick="selectTheme('dark')">
-                    <div class="preview" style="background:#0a0a0f;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">🌙</div>
-                    <h3>DARK</h3>
-                    <p>暗色 · 默认</p>
+                <div class="mode-card theme-swatch" data-theme="dark" onclick="selectTheme('dark')">
+                    <div class="swatch" style="background:#0a0a0f"></div>
+                    <span>DARK</span>
                 </div>
-                <div class="mode-card" data-theme="light" onclick="selectTheme('light')">
-                    <div class="preview" style="background:#f8f6f3;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">☀️</div>
-                    <h3>LIGHT</h3>
-                    <p>暖白亮色</p>
+                <div class="mode-card theme-swatch" data-theme="light" onclick="selectTheme('light')">
+                    <div class="swatch" style="background:#f8f6f3"></div>
+                    <span>LIGHT</span>
                 </div>
-                <div class="mode-card" data-theme="lavender" onclick="selectTheme('lavender')">
-                    <div class="preview" style="background:#e8e0f0;display:flex;align-items:center;justify-content:center;font-size:2.5rem;">💜</div>
-                    <h3>LAVENDER</h3>
-                    <p>薰衣草淡紫</p>
+                <div class="mode-card theme-swatch" data-theme="lavender" onclick="selectTheme('lavender')">
+                    <div class="swatch" style="background:#e8e0f0"></div>
+                    <span>LAVENDER</span>
                 </div>
             </div>
         </div>
@@ -216,7 +223,7 @@
                 <tr><th>TAGLINE</th><td><input type="text" id="profileTagline" value="イラストレーター × 配信者"></td></tr>
                 <tr><th>誕生日</th><td><input type="text" id="profileBday" value="4月21日"></td></tr>
                 <tr><th>種族</th><td><input type="text" id="profileRace" value="猫猫"></td></tr>
-                <tr><th>特性</th><td><input type="text" id="profileTrait" value="左眼に月の印"></td></tr>
+                <tr><th>特性</th><td><input type="text" id="profileTrait" value="豆豆眉"></td></tr>
                 <tr><th>言語</th><td><input type="text" id="profileLang" value="中文 / 日本語"></td></tr>
                 <tr><th>活動</th><td><input type="text" id="profileActivity" value="イラスト制作 × ライブ配信"></td></tr>
                 <tr><th>简介</th><td><input type="text" id="profileDesc" value="猫猫画師兼職虛擬主播，你的賽博損友！"></td></tr>

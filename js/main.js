@@ -204,6 +204,37 @@ applyHomeMode(savedMode);
     `).join('');
 })();
 
+// ===== 动态 Profile =====
+(function renderProfile() {
+    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+    if (!settings.profile) return;
+
+    const p = settings.profile;
+    const h3 = document.querySelector('.profile-info h3');
+    const sub = document.querySelector('.profile-info .profile-sub');
+    const desc = document.querySelector('.profile-info .profile-desc');
+    const table = document.querySelector('.profile-table');
+
+    if (h3 && p.name) h3.textContent = p.name;
+    if (sub && p.nameEn) sub.textContent = p.nameEn;
+    if (desc && p.desc) desc.textContent = p.desc;
+
+    // 从表格读取已有行映射
+    const fieldMap = {
+        '誕生日': 'bday', '種族': 'race', '特性': 'trait',
+        '言語': 'lang', '活動': 'activity'
+    };
+    if (table) {
+        table.querySelectorAll('tr').forEach(tr => {
+            const th = tr.querySelector('th');
+            const td = tr.querySelector('td');
+            if (!th || !td) return;
+            const key = fieldMap[th.textContent.trim()];
+            if (key && p[key]) td.textContent = p[key];
+        });
+    }
+})();
+
 // ===== 滚动动画 =====
 const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
