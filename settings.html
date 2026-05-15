@@ -307,24 +307,19 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // ===== 可选的Hero背景图 =====
-        const heroImages = [
-            'images/pixiv_hd_1.jpg','images/pixiv_hd_2.jpg','images/pixiv_hd_3.jpg',
-            'images/pixiv_hd_4.jpg','images/pixiv_hd_5.jpg','images/pixiv_hd_6.jpg',
-            'images/pixiv_hd_7.jpg','images/pixiv_hd_8.jpg','images/pixiv_hd_9.jpg',
-            'images/pixiv_hd_10.jpg','images/pixiv_hd_11.jpg','images/pixiv_hd_12.jpg',
-            'images/pixiv_hd_13.jpg','images/hd_cover1.jpg','images/hd_cover2.jpg',
-            'images/avatar.jpg',
-        ];
+        // ===== 可选的Hero背景图（已废弃，改用画廊列表）=====
 
         function buildHeroImageGrid() {
             const grid = document.getElementById('heroImageGrid');
+            grid.innerHTML = '';
             const saved = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
-            heroImages.forEach(src => {
+            // 从画廊图片列表读取（与画廊同步）
+            const gallery = getGalleryImages();
+            gallery.forEach(img => {
                 const div = document.createElement('div');
-                div.className = 'img-option' + (src === saved ? ' selected' : '');
-                div.onclick = () => selectHeroImage(src);
-                div.innerHTML = `<img src="${src}" alt="">`;
+                div.className = 'img-option' + (img.src === saved ? ' selected' : '');
+                div.onclick = () => selectHeroImage(img.src);
+                div.innerHTML = `<img src="${img.src}" alt="">`;
                 grid.appendChild(div);
             });
         }
