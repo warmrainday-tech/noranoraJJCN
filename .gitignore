@@ -6,3 +6,4 @@ serve.py
 screenshot_*.png
 ss_*.png
 images/uploads/
+js/token.txt
