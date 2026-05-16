@@ -152,93 +152,85 @@ function applyHomeMode(mode) {
     localStorage.setItem('nora_home_mode', mode);
 }
 
-// 读取保存的模式和设置
-const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-const savedHeroImage = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
+// ===== 从 GitHub config.json 同步全站配置 =====
+(function syncRemoteConfig() {
+    const TOKEN = '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';
+    fetch('https://api.github.com/repos/warmrainday-tech/noranoraJJCN/contents/js/config.json', {
+        headers: { Authorization: `token ${TOKEN}` }
+    }).then(r => r.json()).then(d => {
+        const raw = atob(d.content);
+        const bytes = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        const s = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+        if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
+        if (s.homeMode) localStorage.setItem('nora_home_mode', s.homeMode);
+        if (s.heroImage) localStorage.setItem('nora_hero_image', s.heroImage);
+        const old = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+        if (s.links) old.links = s.links;
+        if (s.profile) old.profile = s.profile;
+        if (s.gallery) old.gallery = s.gallery;
+        if (s.emoji) old.emoji = s.emoji;
+        if (s.galleryImages) old.galleryImages = s.galleryImages;
+        if (s.movies) old.movies = s.movies;
+        if (s.goods) old.goods = s.goods;
+        localStorage.setItem('nora_settings', JSON.stringify(old));
+        applyPageConfig();
+    }).catch(() => { applyPageConfig(); });
+})();
 
-// 应用Hero背景图
-if (savedHeroImage && document.getElementById('heroBg')) {
-    document.getElementById('heroBg').style.backgroundImage = `url('${savedHeroImage}')`;
+function applyPageConfig() {
+    const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
+    const savedMode = localStorage.getItem('nora_home_mode') || 'art';
+    const savedHeroImage = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
+
+    if (savedHeroImage && document.getElementById('heroBg')) {
+        document.getElementById('heroBg').style.backgroundImage = `url('${savedHeroImage}')`;
+    }
+    applyHomeMode(savedMode);
+
+    if (savedSettings.galleryImages && savedSettings.galleryImages.length) {
+        const g = document.getElementById('masonryGrid');
+        if (g) g.innerHTML = savedSettings.galleryImages.map(img =>
+            `<div class="masonry-item${img.tall?' tall':''}"><img src="${img.src}" alt="" loading="lazy"></div>`
+        ).join('');
+    }
+    if (savedSettings.movies && savedSettings.movies.length) {
+        const g = document.getElementById('videosGrid');
+        if (g) g.innerHTML = savedSettings.movies.map(m =>
+            `<a href="${m.link}" target="_blank" class="video-card"><div class="video-thumb"><img src="${m.src}" alt=""><div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div></div></a>`
+        ).join('');
+    }
+    if (savedSettings.goods && savedSettings.goods.length) {
+        const g = document.getElementById('goodsGrid');
+        if (g) g.innerHTML = savedSettings.goods.map(g =>
+            `<a href="${g.link}" target="_blank" class="goods-card"><div class="goods-thumb"><img src="${g.src}" alt=""></div></a>`
+        ).join('');
+    }
+    if (savedSettings.profile) {
+        const p = savedSettings.profile;
+        const h3 = document.querySelector('.profile-info h3');
+        const sub = document.querySelector('.profile-info .profile-sub');
+        const desc = document.querySelector('.profile-info .profile-desc');
+        const table = document.querySelector('.profile-table');
+        if (h3 && p.name) h3.textContent = p.name;
+        if (sub && p.nameEn) sub.textContent = p.nameEn;
+        if (desc && p.desc) desc.innerHTML = p.desc.replace(/\n/g, '<br>');
+        const fm = {'誕生日':'bday','種族':'race','特性':'trait','言語':'lang','活動':'activity'};
+        if (table) table.querySelectorAll('tr').forEach(tr => {
+            const th=tr.querySelector('th'), td=tr.querySelector('td');
+            if (!th||!td) return;
+            const k = fm[th.textContent.trim()];
+            if (k && p[k]) td.textContent = p[k];
+        });
+        if (p.avatar) { const av = document.querySelector('.profile-avatar img'); if(av) av.src = p.avatar; }
+    }
 }
 
-applyHomeMode(savedMode);
-
-// ===== 动态画廊 =====
-(function renderGallery() {
-    const grid = document.getElementById('masonryGrid');
-    if (!grid) return;
+// 远程未到达前的兜底：有 localStorage 数据则渲染，无则保留默认 HTML
+(function fallbackRender() {
     const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.galleryImages || !settings.galleryImages.length) return; // 用默认HTML
-    grid.innerHTML = settings.galleryImages.map(img => {
-        return `<div class="masonry-item${img.tall ? ' tall' : ''}"><img src="${img.src}" alt="" loading="lazy"></div>`;
-    }).join('');
-})();
-
-// ===== 动态 Movies =====
-(function renderMovies() {
-    const grid = document.getElementById('videosGrid');
-    if (!grid) return;
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.movies || !settings.movies.length) return;
-    grid.innerHTML = settings.movies.map(m => `
-        <a href="${m.link}" target="_blank" class="video-card">
-            <div class="video-thumb">
-                <img src="${m.src}" alt="">
-                <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
-            </div>
-        </a>
-    `).join('');
-})();
-
-// ===== 动态 Goods =====
-(function renderGoods() {
-    const grid = document.getElementById('goodsGrid');
-    if (!grid) return;
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.goods || !settings.goods.length) return;
-    grid.innerHTML = settings.goods.map(g => `
-        <a href="${g.link}" target="_blank" class="goods-card">
-            <div class="goods-thumb"><img src="${g.src}" alt=""></div>
-        </a>
-    `).join('');
-})();
-
-// ===== 动态 Profile =====
-(function renderProfile() {
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.profile) return;
-
-    const p = settings.profile;
-    const h3 = document.querySelector('.profile-info h3');
-    const sub = document.querySelector('.profile-info .profile-sub');
-    const desc = document.querySelector('.profile-info .profile-desc');
-    const table = document.querySelector('.profile-table');
-
-    if (h3 && p.name) h3.textContent = p.name;
-    if (sub && p.nameEn) sub.textContent = p.nameEn;
-    if (desc && p.desc) desc.textContent = p.desc;
-
-    // 从表格读取已有行映射
-    const fieldMap = {
-        '誕生日': 'bday', '種族': 'race', '特性': 'trait',
-        '言語': 'lang', '活動': 'activity'
-    };
-    if (table) {
-        table.querySelectorAll('tr').forEach(tr => {
-            const th = tr.querySelector('th');
-            const td = tr.querySelector('td');
-            if (!th || !td) return;
-            const key = fieldMap[th.textContent.trim()];
-            if (key && p[key]) td.textContent = p[key];
-        });
-    }
-
-    // 头像
-    if (p.avatar) {
-        const avatarImg = document.querySelector('.profile-avatar img');
-        if (avatarImg) avatarImg.src = p.avatar;
-    }
+    if (!settings.galleryImages && !settings.movies && !settings.goods && !settings.profile) return;
+    applyPageConfig();
 })();
 
 // ===== 滚动动画 =====

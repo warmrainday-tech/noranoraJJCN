@@ -395,10 +395,26 @@
 
         function saveSettings() {
             const s = getSettings();
-            // 保留已保存的 galleryImages，防止被覆盖
             const old = JSON.parse(localStorage.getItem('nora_settings') || '{}');
             if (old.galleryImages) s.galleryImages = old.galleryImages;
+            if (old.movies) s.movies = old.movies;
+            if (old.goods) s.goods = old.goods;
             localStorage.setItem('nora_settings', JSON.stringify(s));
+
+            // 同步写入 GitHub config.json（全站共享）
+            const jsonStr = JSON.stringify(s, null, 2);
+            const content = btoa(unescape(encodeURIComponent(jsonStr)));
+            const CONFIG_PATH = 'js/config.json';
+            fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${CONFIG_PATH}`, {
+                headers: { Authorization: `token ${GITHUB_TOKEN}` }
+            }).then(r => r.ok ? r.json().then(d => d.sha) : '').catch(() => '').then(sha => {
+                return fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${CONFIG_PATH}`, {
+                    method: 'PUT',
+                    headers: { Authorization: `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: 'update config', content, sha: sha || undefined })
+                });
+            }).catch(e => console.warn('远程保存失败:', e));
+
             showToast('设置已保存 ✓');
         }
 
@@ -517,22 +533,49 @@
             showToast('已添加');
         }
 
-        async function uploadGalleryImage(input) {
-            const file = input.files[0];
+        // ===== GitHub 资源管理 =====
+        const GITHUB_TOKEN = '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';
+        const GITHUB_REPO = 'warmrainday-tech/noranoraJJCN';
+        const RAW_BASE = 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/';
+
+        async function uploadToGithub(file, targetInputId) {
             if (!file) return;
-            const form = new FormData();
-            form.append('file', file);
+            const ts = Date.now();
+            const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+            const path = `images/uploads/${ts}.${ext}`;
+            const content = await new Promise(resolve => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result.split(',')[1]);
+                r.readAsDataURL(file);
+            });
             try {
-                const resp = await fetch('/api/upload', { method: 'POST', body: form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) {
-                    document.getElementById('newGalleryImg').value = data.paths[0];
-                    showToast('上传成功');
+                const resp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`, {
+                    method: 'PUT',
+                    headers: { Authorization: `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `upload ${file.name}`, content })
+                });
+                if (resp.ok) {
+                    const url = RAW_BASE + path;
+                    document.getElementById(targetInputId).value = url;
+                    showToast('上传成功 ✓');
+                    return url;
                 } else {
-                    showToast('上传失败: ' + (data.error || '未知错误'));
+                    showToast('上传失败: ' + resp.status);
                 }
             } catch (e) {
                 showToast('上传失败: ' + e.message);
+            }
+        }
+
+        async function uploadGalleryImage(input) {
+            const url = await uploadToGithub(input.files[0], 'newGalleryImg');
+            if (url) {
+                const tall = document.getElementById('newGalleryTall').value === '1';
+                const images = getGalleryImages();
+                images.push({ src: url, tall });
+                saveGalleryImages(images);
+                renderGalleryList();
+                buildHeroImageGrid();
             }
         }
 
@@ -582,31 +625,20 @@
             showToast('已添加');
         }
         async function uploadMovieImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const form = new FormData(); form.append('file', file);
-            try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) { document.getElementById('newMovieImg').value = data.paths[0]; showToast('上传成功'); }
-                else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
+            const url = await uploadToGithub(input.files[0], 'newMovieImg');
+            if (url) {
+                const link = document.getElementById('newMovieLink').value.trim();
+                const m = getMovies();
+                m.push({ src: url, link: link || '#' });
+                saveMovies(m);
+                document.getElementById('newMovieLink').value = '';
+                renderMovieList();
+            }
         }
 
-        // Avatar upload
         async function uploadAvatarImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const form = new FormData(); form.append('file', file);
-            try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) {
-                    document.getElementById('profileAvatar').value = data.paths[0];
-                    autoSaveSettings();
-                    showToast('上传成功');
-                } else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
+            const url = await uploadToGithub(input.files[0], 'profileAvatar');
+            if (url) autoSaveSettings();
         }
 
         // ===== GOODS management =====
@@ -648,15 +680,15 @@
             showToast('已添加');
         }
         async function uploadGoodsImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const form = new FormData(); form.append('file', file);
-            try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) { document.getElementById('newGoodsImg').value = data.paths[0]; showToast('上传成功'); }
-                else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
+            const url = await uploadToGithub(input.files[0], 'newGoodsImg');
+            if (url) {
+                const link = document.getElementById('newGoodsLink').value.trim();
+                const g = getGoods();
+                g.push({ src: url, link: link || '#' });
+                saveGoods(g);
+                document.getElementById('newGoodsLink').value = '';
+                renderGoodsList();
+            }
         }
 
         function previewSettings() {
