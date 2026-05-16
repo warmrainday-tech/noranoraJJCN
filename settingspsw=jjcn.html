@@ -512,18 +512,10 @@
             showToast('已添加');
         }
 
-        // ===== GitHub 图床上传 =====
-        // Token 从外部文件加载，不提交到仓库
-        let GITHUB_TOKEN = '';
+        // ===== GitHub 图床上传 (jsDelivr CDN) =====
+        const GITHUB_TOKEN = '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';
         const GITHUB_REPO = 'warmrainday-tech/noranoraJJCN';
         const CDN_BASE = 'https://cdn.jsdelivr.net/gh/warmrainday-tech/noranoraJJCN/';
-
-        (async function loadToken() {
-            try {
-                const resp = await fetch('js/token.txt');
-                GITHUB_TOKEN = (await resp.text()).trim();
-            } catch(e) { console.warn('未加载token, 上传功能不可用'); }
-        })();
 
         async function uploadToGithub(file, targetFieldId) {
             if (!file) return;
