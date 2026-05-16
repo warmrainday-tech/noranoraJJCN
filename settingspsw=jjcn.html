@@ -517,7 +517,7 @@
         const GITHUB_REPO = 'warmrainday-tech/noranoraJJCN';
         const CDN_BASE = 'https://cdn.jsdelivr.net/gh/warmrainday-tech/noranoraJJCN/';
 
-        async function uploadToGithub(file, targetFieldId) {
+        async function uploadToGithub(file, targetFieldId, autoAdd) {
             if (!file) return;
             const ts = Date.now();
             const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
@@ -534,20 +534,52 @@
                     body: JSON.stringify({ message: `upload ${file.name}`, content })
                 });
                 if (resp.ok) {
+                    const rawUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${path}`;
                     const cdnUrl = CDN_BASE + path;
-                    document.getElementById(targetFieldId).value = cdnUrl;
+                    document.getElementById(targetFieldId).value = rawUrl;
+                    if (autoAdd) autoAdd(rawUrl);
                     showToast('上传成功 ✓');
                 } else {
-                    showToast('上传失败: ' + resp.status);
+                    const err = await resp.json();
+                    showToast('上传失败: ' + (err.message || resp.status));
                 }
             } catch (e) {
                 showToast('上传失败: ' + e.message);
             }
         }
 
-        async function uploadGalleryImage(input) { uploadToGithub(input.files[0], 'newGalleryImg'); }
-        async function uploadMovieImage(input) { uploadToGithub(input.files[0], 'newMovieImg'); }
-        async function uploadGoodsImage(input) { uploadToGithub(input.files[0], 'newGoodsImg'); }
+        async function uploadGalleryImage(input) {
+            const file = input.files[0];
+            uploadToGithub(file, 'newGalleryImg', (url) => {
+                const tall = document.getElementById('newGalleryTall').value === '1';
+                const images = getGalleryImages();
+                images.push({ src: url, tall });
+                saveGalleryImages(images);
+                renderGalleryList();
+            });
+        }
+        async function uploadMovieImage(input) {
+            const file = input.files[0];
+            uploadToGithub(file, 'newMovieImg', (url) => {
+                const link = document.getElementById('newMovieLink').value.trim();
+                const m = getMovies();
+                m.push({ src: url, link: link || '#' });
+                saveMovies(m);
+                document.getElementById('newMovieLink').value = '';
+                renderMovieList();
+            });
+        }
+        async function uploadGoodsImage(input) {
+            const file = input.files[0];
+            uploadToGithub(file, 'newGoodsImg', (url) => {
+                const link = document.getElementById('newGoodsLink').value.trim();
+                const g = getGoods();
+                g.push({ src: url, link: link || '#' });
+                saveGoods(g);
+                document.getElementById('newGoodsLink').value = '';
+                renderGoodsList();
+            });
+        }
         async function uploadAvatarImage(input) {
             const file = input.files[0];
             if (!file) return;
@@ -602,26 +634,6 @@
             renderMovieList();
             showToast('已添加');
         }
-        async function uploadMovieImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => { document.getElementById('newMovieImg').value = reader.result; showToast('已读取图片'); };
-            reader.readAsDataURL(file);
-        }
-
-        // Avatar upload
-        async function uploadAvatarImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-                document.getElementById('profileAvatar').value = reader.result;
-                autoSaveSettings();
-                showToast('已读取图片');
-            };
-            reader.readAsDataURL(file);
-        }
 
         // ===== GOODS management =====
         const DEFAULT_GOODS = [
@@ -668,14 +680,6 @@
             renderGoodsList();
             showToast('已添加');
         }
-        async function uploadGoodsImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => { document.getElementById('newGoodsImg').value = reader.result; showToast('已读取图片'); };
-            reader.readAsDataURL(file);
-        }
-
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.textContent = msg;
