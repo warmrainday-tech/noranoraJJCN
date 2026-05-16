@@ -358,9 +358,12 @@
             document.getElementById('emojiSection').style.display = mode === 'emoji' ? 'block' : 'none';
         }
 
-        // ===== Save/Load =====
+        // ===== Save/Load (GitHub config.json - 全站共享) =====
+        const CONFIG_PATH = 'js/config.json';
+
         function getSettings() {
             return {
+                theme: document.documentElement.getAttribute('data-theme') || 'dark',
                 homeMode: localStorage.getItem('nora_home_mode') || 'art',
                 heroImage: localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg',
                 links: {
@@ -390,54 +393,88 @@
                     opacity: document.getElementById('emojiOpacity').value,
                     direction: document.getElementById('emojiDirection').value,
                 },
+                galleryImages: getGalleryImages(),
+                movies: getMovies(),
+                goods: getGoods(),
             };
         }
 
-        function saveSettings() {
+        async function saveSettings() {
             const s = getSettings();
-            // 保留已保存的 galleryImages，防止被覆盖
-            const old = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            if (old.galleryImages) s.galleryImages = old.galleryImages;
-            localStorage.setItem('nora_settings', JSON.stringify(s));
-            showToast('设置已保存 ✓');
-        }
-
-        function loadSettings() {
-            const raw = localStorage.getItem('nora_settings');
-            if (!raw) return;
-            const s = JSON.parse(raw);
-            if (s.links) {
-                if (s.links.bilibili) document.getElementById('linkBilibili').value = s.links.bilibili;
-                if (s.links.twitter) document.getElementById('linkTwitter').value = s.links.twitter;
-                if (s.links.pixiv) document.getElementById('linkPixiv').value = s.links.pixiv;
-            }
-            if (s.profile) {
-                Object.keys(s.profile).forEach(key => {
-                    const id = 'profile' + key.charAt(0).toUpperCase() + key.slice(1);
-                    const el = document.getElementById(id);
-                    if (el && s.profile[key]) el.value = s.profile[key];
+            try {
+                let sha = '';
+                try {
+                    const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${CONFIG_PATH}`, {
+                        headers: { Authorization: `token ${GITHUB_TOKEN}` }
+                    });
+                    if (r.ok) { const d = await r.json(); sha = d.sha; }
+                } catch(e) {}
+                const content = btoa(unescape(encodeURIComponent(JSON.stringify(s, null, 2))));
+                const resp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${CONFIG_PATH}`, {
+                    method: 'PUT',
+                    headers: { Authorization: `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: 'update config', content, sha: sha || undefined })
                 });
-            }
-            if (s.gallery) {
-                if (s.gallery.cols) document.getElementById('galleryCols').value = s.gallery.cols;
-                if (s.gallery.gap) document.getElementById('galleryGap').value = s.gallery.gap;
-            }
-            if (s.emoji) {
-                if (s.emoji.cols) document.getElementById('emojiCols').value = s.emoji.cols;
-                if (s.emoji.speed) document.getElementById('emojiSpeed').value = s.emoji.speed;
-                if (s.emoji.opacity) document.getElementById('emojiOpacity').value = s.emoji.opacity;
-                if (s.emoji.direction) document.getElementById('emojiDirection').value = s.emoji.direction;
+                if (resp.ok) {
+                    showToast('设置已保存 ✓');
+                } else {
+                    showToast('保存失败: ' + resp.status);
+                }
+            } catch(e) {
+                showToast('保存失败: ' + e.message);
             }
         }
 
-        // 自动保存（防抖）
+        async function loadSettings() {
+            try {
+                const resp = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/${CONFIG_PATH}`);
+                if (!resp.ok) return;
+                const s = await resp.json();
+                if (s.theme) {
+                    document.documentElement.setAttribute('data-theme', s.theme);
+                    document.querySelector(`.mode-card[data-theme="${s.theme}"]`)?.classList.add('active');
+                }
+                if (s.homeMode) { localStorage.setItem('nora_home_mode', s.homeMode); selectMode(s.homeMode); }
+                if (s.heroImage) localStorage.setItem('nora_hero_image', s.heroImage);
+                if (s.links) {
+                    if (s.links.bilibili) document.getElementById('linkBilibili').value = s.links.bilibili;
+                    if (s.links.twitter) document.getElementById('linkTwitter').value = s.links.twitter;
+                    if (s.links.pixiv) document.getElementById('linkPixiv').value = s.links.pixiv;
+                }
+                if (s.profile) {
+                    const p = s.profile;
+                    if (p.name) document.getElementById('profileName').value = p.name;
+                    if (p.nameEn) document.getElementById('profileNameEn').value = p.nameEn;
+                    if (p.tagline) document.getElementById('profileTagline').value = p.tagline;
+                    if (p.bday) document.getElementById('profileBday').value = p.bday;
+                    if (p.race) document.getElementById('profileRace').value = p.race;
+                    if (p.trait) document.getElementById('profileTrait').value = p.trait;
+                    if (p.lang) document.getElementById('profileLang').value = p.lang;
+                    if (p.activity) document.getElementById('profileActivity').value = p.activity;
+                    if (p.desc) document.getElementById('profileDesc').value = p.desc;
+                    if (p.avatar) document.getElementById('profileAvatar').value = p.avatar;
+                }
+                if (s.gallery) {
+                    if (s.gallery.cols) document.getElementById('galleryCols').value = s.gallery.cols;
+                    if (s.gallery.gap) document.getElementById('galleryGap').value = s.gallery.gap;
+                }
+                if (s.emoji) {
+                    if (s.emoji.cols) document.getElementById('emojiCols').value = s.emoji.cols;
+                    if (s.emoji.speed) document.getElementById('emojiSpeed').value = s.emoji.speed;
+                    if (s.emoji.opacity) document.getElementById('emojiOpacity').value = s.emoji.opacity;
+                    if (s.emoji.direction) document.getElementById('emojiDirection').value = s.emoji.direction;
+                }
+                if (s.galleryImages) { saveGalleryImages(s.galleryImages); renderGalleryList(); }
+                if (s.movies) { saveMovies(s.movies); renderMovieList(); }
+                if (s.goods) { saveGoods(s.goods); renderGoodsList(); }
+                buildHeroImageGrid();
+            } catch(e) { console.warn('加载远程配置失败:', e); }
+        }
+
         let autoSaveTimer;
         function autoSaveSettings() {
             clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                saveSettings();
-                showToast('已保存 ✓');
-            }, 600);
+            autoSaveTimer = setTimeout(() => { saveSettings(); }, 600);
         }
 
         // ===== Gallery image management =====
@@ -688,18 +725,10 @@
         }
 
         // ===== Init =====
-        const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-        const savedTheme = settings.theme || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector(`.mode-card[data-theme="${savedTheme}"]`)?.classList.add('active');
-
-        const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-        selectMode(savedMode);
-        buildHeroImageGrid();
-        loadSettings();
-        renderGalleryList();
-        renderMovieList();
-        renderGoodsList();
+        document.documentElement.setAttribute('data-theme', 'dark');
+        loadSettings().then(() => {
+            // loadSettings 已处理 theme/mode/gallery 等
+        });
     </script>
 </body>
 </html>

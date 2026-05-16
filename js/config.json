@@ -1,0 +1,55 @@
+{
+  "theme": "dark",
+  "homeMode": "art",
+  "heroImage": "https://cdn.jsdelivr.net/gh/warmrainday-tech/noranoraJJCN/images/pixiv_hd_1.jpg",
+  "links": {
+    "bilibili": "https://space.bilibili.com/86471108",
+    "twitter": "https://twitter.com/Ayatsuki_Nora",
+    "pixiv": "https://www.pixiv.net/users/36966416"
+  },
+  "profile": {
+    "name": "綾月乃蘿",
+    "nameEn": "Ayatsuki Nora",
+    "tagline": "イラストレーター × 配信者",
+    "bday": "4月21日",
+    "race": "猫猫",
+    "trait": "左眼に月の印",
+    "lang": "中文 / 日本語",
+    "activity": "イラスト制作 × ライブ配信",
+    "desc": "猫猫画師兼職虛擬主播，你的賽博損友！\n左眼有月之印記的貓咪，擅長同人插畫與原創角色設計。\n在B站直播繪畫過程，偶爾也會玩遊戲和聊天。",
+    "avatar": "images/avatar.jpg"
+  },
+  "gallery": {
+    "cols": "3",
+    "gap": "16"
+  },
+  "emoji": {
+    "cols": "12",
+    "speed": "30",
+    "opacity": "0.6",
+    "direction": "vertical"
+  },
+  "galleryImages": [
+    { "src": "https://cdn.jsdelivr.net/gh/warmrainday-tech/noranoraJJCN/images/pixiv_hd_1.jpg", "tall": true },
+    { "src": "images/pixiv_hd_3.jpg", "tall": false },
+    { "src": "images/pixiv_hd_4.jpg", "tall": false },
+    { "src": "images/pixiv_hd_5.jpg", "tall": true },
+    { "src": "images/pixiv_hd_6.jpg", "tall": false },
+    { "src": "images/pixiv_hd_7.jpg", "tall": false },
+    { "src": "images/pixiv_hd_9.jpg", "tall": true },
+    { "src": "images/pixiv_hd_10.jpg", "tall": false },
+    { "src": "images/pixiv_hd_12.jpg", "tall": false }
+  ],
+  "movies": [
+    { "src": "images/vid_1.jpg", "link": "https://www.bilibili.com/video/BV1TXnSzXE8N" },
+    { "src": "images/vid_5.jpg", "link": "https://space.bilibili.com/86471108" },
+    { "src": "images/vid_7.jpg", "link": "https://space.bilibili.com/86471108" },
+    { "src": "images/vid_8.jpg", "link": "https://space.bilibili.com/86471108" }
+  ],
+  "goods": [
+    { "src": "images/goods_1.png", "link": "https://space.bilibili.com/86471108" },
+    { "src": "images/goods_2.jpg", "link": "https://space.bilibili.com/86471108" },
+    { "src": "images/goods_3.jpg", "link": "https://space.bilibili.com/86471108" },
+    { "src": "images/goods_4.jpg", "link": "https://space.bilibili.com/86471108" }
+  ]
+}

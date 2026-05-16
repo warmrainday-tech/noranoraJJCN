@@ -152,93 +152,78 @@ function applyHomeMode(mode) {
     localStorage.setItem('nora_home_mode', mode);
 }
 
-// 读取保存的模式和设置
-const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-const savedHeroImage = localStorage.getItem('nora_hero_image') || 'https://cdn.jsdelivr.net/gh/warmrainday-tech/noranoraJJCN/images/pixiv_hd_1.jpg';
+// ===== 从远程 config.json 加载全站共享配置 =====
+(async function loadRemoteConfig() {
+    try {
+        const resp = await fetch('https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/js/config.json');
+        if (!resp.ok) return;
+        const s = await resp.json();
 
-// 应用Hero背景图
-if (savedHeroImage && document.getElementById('heroBg')) {
-    document.getElementById('heroBg').style.backgroundImage = `url('${savedHeroImage}')`;
-}
+        // 主题
+        if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
 
-applyHomeMode(savedMode);
+        // 首页模式
+        const mode = s.homeMode || 'art';
+        applyHomeMode(mode);
 
-// ===== 动态画廊 =====
-(function renderGallery() {
-    const grid = document.getElementById('masonryGrid');
-    if (!grid) return;
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.galleryImages || !settings.galleryImages.length) return; // 用默认HTML
-    grid.innerHTML = settings.galleryImages.map(img => {
-        return `<div class="masonry-item${img.tall ? ' tall' : ''}"><img src="${img.src}" alt="" loading="lazy"></div>`;
-    }).join('');
-})();
+        // Hero背景
+        if (s.heroImage && document.getElementById('heroBg')) {
+            document.getElementById('heroBg').style.backgroundImage = `url('${s.heroImage}')`;
+        }
 
-// ===== 动态 Movies =====
-(function renderMovies() {
-    const grid = document.getElementById('videosGrid');
-    if (!grid) return;
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.movies || !settings.movies.length) return;
-    grid.innerHTML = settings.movies.map(m => `
-        <a href="${m.link}" target="_blank" class="video-card">
-            <div class="video-thumb">
-                <img src="${m.src}" alt="">
-                <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
-            </div>
-        </a>
-    `).join('');
-})();
+        // Gallery
+        if (s.galleryImages && s.galleryImages.length) {
+            const grid = document.getElementById('masonryGrid');
+            if (grid) grid.innerHTML = s.galleryImages.map(img =>
+                `<div class="masonry-item${img.tall ? ' tall' : ''}"><img src="${img.src}" alt="" loading="lazy"></div>`
+            ).join('');
+        }
 
-// ===== 动态 Goods =====
-(function renderGoods() {
-    const grid = document.getElementById('goodsGrid');
-    if (!grid) return;
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.goods || !settings.goods.length) return;
-    grid.innerHTML = settings.goods.map(g => `
-        <a href="${g.link}" target="_blank" class="goods-card">
-            <div class="goods-thumb"><img src="${g.src}" alt=""></div>
-        </a>
-    `).join('');
-})();
+        // Movies
+        if (s.movies && s.movies.length) {
+            const grid = document.getElementById('videosGrid');
+            if (grid) grid.innerHTML = s.movies.map(m =>
+                `<a href="${m.link}" target="_blank" class="video-card">
+                    <div class="video-thumb"><img src="${m.src}" alt=""><div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div></div>
+                </a>`
+            ).join('');
+        }
 
-// ===== 动态 Profile =====
-(function renderProfile() {
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.profile) return;
+        // Goods
+        if (s.goods && s.goods.length) {
+            const grid = document.getElementById('goodsGrid');
+            if (grid) grid.innerHTML = s.goods.map(g =>
+                `<a href="${g.link || '#'}" target="_blank" class="goods-card">
+                    <div class="goods-thumb"><img src="${g.src}" alt=""></div>
+                </a>`
+            ).join('');
+        }
 
-    const p = settings.profile;
-    const h3 = document.querySelector('.profile-info h3');
-    const sub = document.querySelector('.profile-info .profile-sub');
-    const desc = document.querySelector('.profile-info .profile-desc');
-    const table = document.querySelector('.profile-table');
-
-    if (h3 && p.name) h3.textContent = p.name;
-    if (sub && p.nameEn) sub.textContent = p.nameEn;
-    if (desc && p.desc) desc.textContent = p.desc;
-
-    // 从表格读取已有行映射
-    const fieldMap = {
-        '誕生日': 'bday', '種族': 'race', '特性': 'trait',
-        '言語': 'lang', '活動': 'activity'
-    };
-    if (table) {
-        table.querySelectorAll('tr').forEach(tr => {
-            const th = tr.querySelector('th');
-            const td = tr.querySelector('td');
-            if (!th || !td) return;
-            const key = fieldMap[th.textContent.trim()];
-            if (key && p[key]) td.textContent = p[key];
-        });
-    }
-
-    // 头像
-    if (p.avatar) {
-        const avatarImg = document.querySelector('.profile-avatar img');
-        if (avatarImg) avatarImg.src = p.avatar;
-    }
+        // Profile
+        if (s.profile) {
+            const p = s.profile;
+            const info = document.querySelector('.profile-info');
+            if (info) {
+                const h3 = info.querySelector('h3');
+                const sub = info.querySelector('.profile-sub');
+                if (p.name && h3) h3.textContent = p.name;
+                if (p.nameEn && sub) sub.textContent = p.nameEn;
+                const rows = info.querySelectorAll('.profile-table tr');
+                const fields = ['bday','race','trait','lang','activity'];
+                rows.forEach((row, i) => {
+                    if (i < fields.length && p[fields[i]]) row.querySelector('td').textContent = p[fields[i]];
+                });
+                if (p.desc) {
+                    const desc = info.querySelector('.profile-desc');
+                    if (desc) desc.innerHTML = p.desc.replace(/\n/g, '<br>');
+                }
+            }
+            if (p.avatar) {
+                const av = document.querySelector('.profile-avatar img');
+                if (av) av.src = p.avatar;
+            }
+        }
+    } catch(e) { console.warn('加载远程配置失败:', e); }
 })();
 
 // ===== 滚动动画 =====
