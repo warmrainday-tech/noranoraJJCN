@@ -172,14 +172,31 @@ function applyHomeMode(mode) {
         if (s.goods) old.goods = s.goods;
         localStorage.setItem('nora_settings', JSON.stringify(old));
         applyPageConfig();
-    }).catch(() => { applyPageConfig(); });
+
+    // 对 GitHub 上传图片（images/uploads/），通过 API 获取 base64 以绕过 private repo 限制
+    resolveUploadImages();
+}).catch(() => { applyPageConfig(); resolveUploadImages(); });
 })();
+
+function resolveUploadImages() {
+    const TOKEN = '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';
+    const imgs = document.querySelectorAll('img[src*="images/uploads/"]');
+    imgs.forEach(img => {
+        const src = img.src;
+        if (src.startsWith('data:')) return; // 已处理
+        fetch(`https://api.github.com/repos/warmrainday-tech/noranoraJJCN/contents/${src.split('main/')[1] || src}`, {
+            headers: { Authorization: `token ${TOKEN}` }
+        }).then(r => r.json()).then(d => {
+            img.src = 'data:image/' + (d.name.endsWith('.png')?'png':'jpeg') + ';base64,' + d.content;
+        }).catch(() => {});
+    });
+}
 
 function applyPageConfig() {
     _configApplied = true;
     const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
     const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-    const savedHeroImage = localStorage.getItem('nora_hero_image') || 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_1.jpg';
+    const savedHeroImage = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
 
     if (savedHeroImage && document.getElementById('heroBg')) {
         document.getElementById('heroBg').style.backgroundImage = `url('${savedHeroImage}')`;
