@@ -8,7 +8,7 @@
     "pixiv": "https://www.pixiv.net/users/36966416"
   },
   "profile": {
-    "name": "",
+    "name": "綾月乃蘿",
     "nameEn": "Ayatsuki Nora",
     "tagline": "",
     "bday": "",
@@ -59,10 +59,6 @@
       "tall": false
     },
     {
-      "src": "images/pixiv_hd_8.jpg",
-      "tall": false
-    },
-    {
       "src": "images/pixiv_hd_9.jpg",
       "tall": true
     },
@@ -71,23 +67,7 @@
       "tall": false
     },
     {
-      "src": "images/pixiv_hd_11.jpg",
-      "tall": false
-    },
-    {
       "src": "images/pixiv_hd_12.jpg",
-      "tall": false
-    },
-    {
-      "src": "images/pixiv_hd_13.jpg",
-      "tall": true
-    },
-    {
-      "src": "images/hd_cover1.jpg",
-      "tall": false
-    },
-    {
-      "src": "images/hd_cover2.jpg",
       "tall": false
     }
   ],
