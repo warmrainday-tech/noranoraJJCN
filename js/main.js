@@ -158,10 +158,7 @@ function applyHomeMode(mode) {
     fetch('https://api.github.com/repos/warmrainday-tech/noranoraJJCN/contents/js/config.json', {
         headers: { Authorization: `token ${TOKEN}` }
     }).then(r => r.json()).then(d => {
-        const raw = atob(d.content);
-        const bytes = new Uint8Array(raw.length);
-        for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-        const s = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+        const s = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(d.content), c => c.charCodeAt(0))));
         if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
         if (s.homeMode) localStorage.setItem('nora_home_mode', s.homeMode);
         if (s.heroImage) localStorage.setItem('nora_hero_image', s.heroImage);
@@ -179,6 +176,7 @@ function applyHomeMode(mode) {
 })();
 
 function applyPageConfig() {
+    _configApplied = true;
     const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
     const savedMode = localStorage.getItem('nora_home_mode') || 'art';
     const savedHeroImage = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
@@ -226,10 +224,14 @@ function applyPageConfig() {
     }
 }
 
+let _configApplied = false;
+
 // 远程未到达前的兜底：有 localStorage 数据则渲染，无则保留默认 HTML
 (function fallbackRender() {
     const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
     if (!settings.galleryImages && !settings.movies && !settings.goods && !settings.profile) return;
+    if (_configApplied) return;
+    _configApplied = true;
     applyPageConfig();
 })();
 

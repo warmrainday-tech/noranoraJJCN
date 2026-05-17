@@ -403,7 +403,8 @@
 
             // 同步写入 GitHub config.json（全站共享）
             const jsonStr = JSON.stringify(s, null, 2);
-            const content = btoa(unescape(encodeURIComponent(jsonStr)));
+            const bytes = new TextEncoder().encode(jsonStr);
+            const content = btoa(String.fromCharCode.apply(null, bytes));
             const CONFIG_PATH = 'js/config.json';
             fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${CONFIG_PATH}`, {
                 headers: { Authorization: `token ${GITHUB_TOKEN}` }
