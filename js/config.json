@@ -1,0 +1,130 @@
+{
+  "theme": "lavender",
+  "homeMode": "emoji",
+  "heroImage": "images/pixiv_hd_1.jpg",
+  "links": {
+    "bilibili": "https://space.bilibili.com/86471108",
+    "twitter": "https://twitter.com/Ayatsuki_Nora",
+    "pixiv": "https://www.pixiv.net/users/36966416"
+  },
+  "profile": {
+    "name": "ç¶¾æä¹è¿",
+    "nameEn": "Ayatsuki Nora",
+    "tagline": "ã¤ã©ã¹ãã¬ã¼ã¿ã¼ Ã éä¿¡è",
+    "bday": "4æ21æ¥",
+    "race": "ç«ç«",
+    "trait": "å·¦ç¼ã«æã®å°",
+    "lang": "ä¸­æ / æ¥æ¬èª",
+    "activity": "ã¤ã©ã¹ãå¶ä½ Ã ã©ã¤ãéä¿¡",
+    "desc": "ç«ç«ç»å¸«å¼è·èæ¬ä¸»æ­ï¼ä½ çè³½åæåï¼å·¦ç¼ææä¹å°è¨çè²åªï¼æé·åäººæç«èååµè§è²è¨­è¨ãå¨Bç«ç´æ­ç¹ªç«éç¨ï¼å¶ç¾ä¹æç©éæ²åèå¤©ã",
+    "avatar": "images/avatar.jpg"
+  },
+  "gallery": {
+    "cols": "3",
+    "gap": "16"
+  },
+  "emoji": {
+    "cols": "12",
+    "speed": "30",
+    "opacity": "0.6",
+    "direction": "diagonal-left"
+  },
+  "galleryImages": [
+    {
+      "src": "images/pixiv_hd_1.jpg",
+      "tall": true
+    },
+    {
+      "src": "images/pixiv_hd_2.jpg",
+      "tall": true
+    },
+    {
+      "src": "images/pixiv_hd_3.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/pixiv_hd_4.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/pixiv_hd_5.jpg",
+      "tall": true
+    },
+    {
+      "src": "images/pixiv_hd_6.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/pixiv_hd_7.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/pixiv_hd_8.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/pixiv_hd_9.jpg",
+      "tall": true
+    },
+    {
+      "src": "images/pixiv_hd_10.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/pixiv_hd_11.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/pixiv_hd_12.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/pixiv_hd_13.jpg",
+      "tall": true
+    },
+    {
+      "src": "images/hd_cover1.jpg",
+      "tall": false
+    },
+    {
+      "src": "images/hd_cover2.jpg",
+      "tall": false
+    }
+  ],
+  "movies": [
+    {
+      "src": "images/vid_1.jpg",
+      "link": "https://space.bilibili.com/86471108"
+    },
+    {
+      "src": "images/vid_3.jpg",
+      "link": "https://space.bilibili.com/86471108"
+    },
+    {
+      "src": "images/vid_4.jpg",
+      "link": "https://space.bilibili.com/86471108"
+    },
+    {
+      "src": "images/vid_6.jpg",
+      "link": "https://space.bilibili.com/86471108"
+    }
+  ],
+  "goods": [
+    {
+      "src": "images/goods_1.png",
+      "link": "https://space.bilibili.com/86471108"
+    },
+    {
+      "src": "images/goods_2.jpg",
+      "link": "https://space.bilibili.com/86471108"
+    },
+    {
+      "src": "images/goods_3.jpg",
+      "link": "https://space.bilibili.com/86471108"
+    },
+    {
+      "src": "images/goods_4.jpg",
+      "link": "https://space.bilibili.com/86471108"
+    }
+  ]
+}
