@@ -181,7 +181,7 @@
             <h2>HOME MODE</h2>
             <div class="mode-switch">
                 <div class="mode-card" data-mode="art" onclick="selectMode('art')">
-                    <div class="preview"><img src="images/pixiv_hd_1.jpg" alt="Art Mode"></div>
+                    <div class="preview"><img src="https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_1.jpg" alt="Art Mode"></div>
                     <h3>ART</h3>
                     <p>插画全屏Hero背景</p>
                 </div>
@@ -249,7 +249,7 @@
                 <tr><th>简介</th><td><input type="text" id="profileDesc" value="猫猫画師兼職虛擬主播，你的賽博損友！" oninput="autoSaveSettings()"></td></tr>
                 <tr><th>头像</th><td>
                     <div style="display:flex;gap:8px;align-items:center">
-                        <input type="text" id="profileAvatar" value="images/avatar.jpg" oninput="autoSaveSettings()" style="flex:1">
+                        <input type="text" id="profileAvatar" value="https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/avatar.jpg" oninput="autoSaveSettings()" style="flex:1">
                         <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="uploadAvatarImage(this)">
                         <button class="btn" onclick="document.getElementById('avatarFileInput').click()">📁 上传</button>
                     </div>
@@ -273,7 +273,7 @@
             <div style="margin-top:20px">
                 <h3 style="font-size:0.8rem;color:var(--text-dim);margin-bottom:10px">图片列表</h3>
                 <div style="display:flex;gap:8px;margin-bottom:10px">
-                    <input type="text" id="newGalleryImg" placeholder="images/xxx.jpg" style="flex:1">
+                    <input type="text" id="newGalleryImg" placeholder="https://raw.githubusercontent.com/..." style="flex:1">
                     <select id="newGalleryTall" style="width:80px;flex:none"><option value="0">普通</option><option value="1">高(tall)</option></select>
                     <button class="btn" onclick="addGalleryImage()">+ 添加</button>
                     <input type="file" id="galleryFileInput" accept="image/*" style="display:none" onchange="uploadGalleryImage(this)">
@@ -319,7 +319,7 @@
         function buildHeroImageGrid() {
             const grid = document.getElementById('heroImageGrid');
             grid.innerHTML = '';
-            const saved = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
+            const saved = localStorage.getItem('nora_hero_image') || 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_1.jpg';
             // 从画廊图片列表读取（与画廊同步）
             const gallery = getGalleryImages();
             gallery.forEach(img => {
@@ -362,7 +362,7 @@
         function getSettings() {
             return {
                 homeMode: localStorage.getItem('nora_home_mode') || 'art',
-                heroImage: localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg',
+                heroImage: localStorage.getItem('nora_hero_image') || 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_1.jpg',
                 links: {
                     bilibili: document.getElementById('linkBilibili').value,
                     twitter: document.getElementById('linkTwitter').value,
@@ -459,20 +459,20 @@
 
         // ===== Gallery image management =====
         const DEFAULT_GALLERY = [
-            { src: 'images/pixiv_hd_2.jpg', tall: true },
-            { src: 'images/pixiv_hd_3.jpg', tall: false },
-            { src: 'images/pixiv_hd_4.jpg', tall: false },
-            { src: 'images/pixiv_hd_5.jpg', tall: true },
-            { src: 'images/pixiv_hd_6.jpg', tall: false },
-            { src: 'images/pixiv_hd_7.jpg', tall: false },
-            { src: 'images/pixiv_hd_8.jpg', tall: false },
-            { src: 'images/pixiv_hd_9.jpg', tall: true },
-            { src: 'images/pixiv_hd_10.jpg', tall: false },
-            { src: 'images/pixiv_hd_11.jpg', tall: false },
-            { src: 'images/pixiv_hd_12.jpg', tall: false },
-            { src: 'images/pixiv_hd_13.jpg', tall: true },
-            { src: 'images/hd_cover1.jpg', tall: false },
-            { src: 'images/hd_cover2.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_2.jpg', tall: true },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_3.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_4.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_5.jpg', tall: true },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_6.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_7.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_8.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_9.jpg', tall: true },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_10.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_11.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_12.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_13.jpg', tall: true },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/hd_cover1.jpg', tall: false },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/hd_cover2.jpg', tall: false },
         ];
 
         function getGalleryImages() {
@@ -582,10 +582,10 @@
 
         // ===== MOVIE management =====
         const DEFAULT_MOVIES = [
-            { src: 'images/vid_1.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_3.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_4.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_6.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/vid_1.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/vid_3.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/vid_4.jpg', link: 'https://space.bilibili.com/86471108' },
+            { src: 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/vid_6.jpg', link: 'https://space.bilibili.com/86471108' },
         ];
 
         function getMovies() {

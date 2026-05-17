@@ -179,7 +179,7 @@ function applyPageConfig() {
     _configApplied = true;
     const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
     const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-    const savedHeroImage = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
+    const savedHeroImage = localStorage.getItem('nora_hero_image') || 'https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_1.jpg';
 
     if (savedHeroImage && document.getElementById('heroBg')) {
         document.getElementById('heroBg').style.backgroundImage = `url('${savedHeroImage}')`;
