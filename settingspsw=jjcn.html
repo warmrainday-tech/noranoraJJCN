@@ -314,333 +314,294 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // ===== 可选的Hero背景图（已废弃，改用画廊列表）=====
+        // ===== 远程配置 API =====
+        const WORKER_URL = 'https://nora-cdn.YOUR_SUBDOMAIN.workers.dev';
 
+        let remoteConfig = {};
+
+        async function loadConfig() {
+            try {
+                const r = await fetch(WORKER_URL + '/config');
+                if (r.ok) remoteConfig = await r.json();
+            } catch (e) { console.warn('Failed to load config:', e); }
+            applyAll();
+        }
+
+        async function saveConfig() {
+            try {
+                const r = await fetch(WORKER_URL + '/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(remoteConfig),
+                });
+                if (!r.ok) throw new Error('save failed');
+                showToast('设置已保存 ✓');
+            } catch (e) { showToast('保存失败: ' + e.message); }
+        }
+
+        function getCfg(key, def) {
+            return remoteConfig[key] !== undefined ? remoteConfig[key] : def;
+        }
+        function setCfg(key, val) { remoteConfig[key] = val; }
+
+        // ===== Toast =====
+        let toastTimer;
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.style.opacity = '1';
+            el.style.pointerEvents = 'auto';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }, 2000);
+        }
+
+        // ===== Theme =====
+        function selectTheme(theme) {
+            document.querySelectorAll('.mode-card[data-theme]').forEach(function(el) { el.classList.remove('active'); });
+            var card = document.querySelector('.mode-card[data-theme="' + theme + '"]');
+            if (card) card.classList.add('active');
+            document.documentElement.setAttribute('data-theme', theme);
+            setCfg('theme', theme);
+            autoSaveSettings();
+        }
+
+        // ===== Home Mode =====
+        function selectMode(mode) {
+            document.querySelectorAll('.mode-card[data-mode]').forEach(function(el) { el.classList.remove('active'); });
+            var card = document.querySelector('.mode-card[data-mode="' + mode + '"]');
+            if (card) card.classList.add('active');
+            setCfg('homeMode', mode);
+            var hero = document.getElementById('heroImageSection');
+            var emoji = document.getElementById('emojiSection');
+            if (hero) hero.style.display = mode === 'art' ? 'block' : 'none';
+            if (emoji) emoji.style.display = mode === 'emoji' ? 'block' : 'none';
+            autoSaveSettings();
+        }
+
+        // ===== Hero Image =====
         function buildHeroImageGrid() {
-            const grid = document.getElementById('heroImageGrid');
+            var grid = document.getElementById('heroImageGrid');
+            if (!grid) return;
             grid.innerHTML = '';
-            const saved = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
-            // 从画廊图片列表读取（与画廊同步）
-            const gallery = getGalleryImages();
-            gallery.forEach(img => {
-                const div = document.createElement('div');
+            var saved = getCfg('heroImage', 'images/pixiv_hd_1.jpg');
+            var gallery = getCfg('galleryImages', []);
+            gallery.forEach(function(img) {
+                var div = document.createElement('div');
                 div.className = 'img-option' + (img.src === saved ? ' selected' : '');
-                div.onclick = () => selectHeroImage(img.src);
-                div.innerHTML = `<img src="${img.src}" alt="">`;
+                div.onclick = function() { selectHeroImage(img.src); };
+                div.innerHTML = '<img src="' + img.src + '" alt="">';
                 grid.appendChild(div);
             });
         }
 
         function selectHeroImage(src) {
-            document.querySelectorAll('.img-option').forEach(el => el.classList.remove('selected'));
-            event.currentTarget.classList.add('selected');
-            localStorage.setItem('nora_hero_image', src);
+            setCfg('heroImage', src);
+            document.querySelectorAll('.image-grid .img-option').forEach(function(el) {
+                el.classList.toggle('selected', el.querySelector('img').src === src);
+            });
+            autoSaveSettings();
         }
 
-        // ===== Theme =====
-        function selectTheme(theme) {
-            document.querySelectorAll('.mode-card[data-theme]').forEach(el => el.classList.remove('active'));
-            document.querySelector(`.mode-card[data-theme="${theme}"]`).classList.add('active');
-            document.documentElement.setAttribute('data-theme', theme);
-            const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            settings.theme = theme;
-            localStorage.setItem('nora_settings', JSON.stringify(settings));
-        }
-
-        // ===== Mode =====
-        function selectMode(mode) {
-            document.querySelectorAll('.mode-card[data-mode]').forEach(el => el.classList.remove('active'));
-            document.querySelector(`.mode-card[data-mode="${mode}"]`).classList.add('active');
-            localStorage.setItem('nora_home_mode', mode);
-            // 显示/隐藏hero image section
-            document.getElementById('heroImageSection').style.display = mode === 'art' ? 'block' : 'none';
-            // 显示/隐藏emoji section
-            document.getElementById('emojiSection').style.display = mode === 'emoji' ? 'block' : 'none';
-        }
-
-        // ===== Save/Load =====
-        function getSettings() {
-            return {
-                homeMode: localStorage.getItem('nora_home_mode') || 'art',
-                heroImage: localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg',
-                links: {
-                    bilibili: document.getElementById('linkBilibili').value,
-                    twitter: document.getElementById('linkTwitter').value,
-                    pixiv: document.getElementById('linkPixiv').value,
-                },
-                profile: {
-                    name: document.getElementById('profileName').value,
-                    nameEn: document.getElementById('profileNameEn').value,
-                    tagline: document.getElementById('profileTagline').value,
-                    bday: document.getElementById('profileBday').value,
-                    race: document.getElementById('profileRace').value,
-                    trait: document.getElementById('profileTrait').value,
-                    lang: document.getElementById('profileLang').value,
-                    activity: document.getElementById('profileActivity').value,
-                    desc: document.getElementById('profileDesc').value,
-                    avatar: document.getElementById('profileAvatar').value,
-                },
-                gallery: {
-                    cols: document.getElementById('galleryCols').value,
-                    gap: document.getElementById('galleryGap').value,
-                },
-                emoji: {
-                    cols: document.getElementById('emojiCols').value,
-                    speed: document.getElementById('emojiSpeed').value,
-                    opacity: document.getElementById('emojiOpacity').value,
-                    direction: document.getElementById('emojiDirection').value,
-                },
-            };
-        }
-
-        function saveSettings() {
-            const s = getSettings();
-            // 保留已保存的 galleryImages，防止被覆盖
-            const old = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            if (old.galleryImages) s.galleryImages = old.galleryImages;
-            localStorage.setItem('nora_settings', JSON.stringify(s));
-            showToast('设置已保存 ✓');
-        }
-
-        function loadSettings() {
-            const raw = localStorage.getItem('nora_settings');
-            if (!raw) return;
-            const s = JSON.parse(raw);
-            if (s.links) {
-                if (s.links.bilibili) document.getElementById('linkBilibili').value = s.links.bilibili;
-                if (s.links.twitter) document.getElementById('linkTwitter').value = s.links.twitter;
-                if (s.links.pixiv) document.getElementById('linkPixiv').value = s.links.pixiv;
-            }
-            if (s.profile) {
-                Object.keys(s.profile).forEach(key => {
-                    const id = 'profile' + key.charAt(0).toUpperCase() + key.slice(1);
-                    const el = document.getElementById(id);
-                    if (el && s.profile[key]) el.value = s.profile[key];
-                });
-            }
-            if (s.gallery) {
-                if (s.gallery.cols) document.getElementById('galleryCols').value = s.gallery.cols;
-                if (s.gallery.gap) document.getElementById('galleryGap').value = s.gallery.gap;
-            }
-            if (s.emoji) {
-                if (s.emoji.cols) document.getElementById('emojiCols').value = s.emoji.cols;
-                if (s.emoji.speed) document.getElementById('emojiSpeed').value = s.emoji.speed;
-                if (s.emoji.opacity) document.getElementById('emojiOpacity').value = s.emoji.opacity;
-                if (s.emoji.direction) document.getElementById('emojiDirection').value = s.emoji.direction;
-            }
-        }
-
-        // 自动保存（防抖）
-        let autoSaveTimer;
+        // ===== Auto save =====
+        var autoSaveTimeout;
         function autoSaveSettings() {
-            clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                saveSettings();
-                showToast('已保存 ✓');
-            }, 600);
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(collectAndSave, 500);
         }
 
-        // ===== Gallery image management =====
-        const DEFAULT_GALLERY = [
-            { src: 'images/pixiv_hd_2.jpg', tall: true },
-            { src: 'images/pixiv_hd_3.jpg', tall: false },
-            { src: 'images/pixiv_hd_4.jpg', tall: false },
-            { src: 'images/pixiv_hd_5.jpg', tall: true },
-            { src: 'images/pixiv_hd_6.jpg', tall: false },
-            { src: 'images/pixiv_hd_7.jpg', tall: false },
-            { src: 'images/pixiv_hd_8.jpg', tall: false },
-            { src: 'images/pixiv_hd_9.jpg', tall: true },
-            { src: 'images/pixiv_hd_10.jpg', tall: false },
-            { src: 'images/pixiv_hd_11.jpg', tall: false },
-            { src: 'images/pixiv_hd_12.jpg', tall: false },
-            { src: 'images/pixiv_hd_13.jpg', tall: true },
-            { src: 'images/hd_cover1.jpg', tall: false },
-            { src: 'images/hd_cover2.jpg', tall: false },
-        ];
+        function collectAndSave() {
+            var el = function(id) { return document.getElementById(id); };
 
-        function getGalleryImages() {
-            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            if (s.galleryImages && s.galleryImages.length) return s.galleryImages;
-            return JSON.parse(JSON.stringify(DEFAULT_GALLERY));
+            setCfg('homeMode', getCfg('homeMode', 'art'));
+            setCfg('heroImage', getCfg('heroImage', 'images/pixiv_hd_1.jpg'));
+
+            if (el('linkBilibili')) setCfg('linkBilibili', el('linkBilibili').value);
+            if (el('linkTwitter')) setCfg('linkTwitter', el('linkTwitter').value);
+            if (el('linkPixiv')) setCfg('linkPixiv', el('linkPixiv').value);
+
+            if (el('profileName')) setCfg('profileName', el('profileName').value);
+            if (el('profileNameEn')) setCfg('profileNameEn', el('profileNameEn').value);
+            if (el('profileTagline')) setCfg('profileTagline', el('profileTagline').value);
+            if (el('profileBday')) setCfg('profileBday', el('profileBday').value);
+            if (el('profileRace')) setCfg('profileRace', el('profileRace').value);
+            if (el('profileTrait')) setCfg('profileTrait', el('profileTrait').value);
+            if (el('profileLang')) setCfg('profileLang', el('profileLang').value);
+            if (el('profileActivity')) setCfg('profileActivity', el('profileActivity').value);
+            if (el('profileDesc')) setCfg('profileDesc', el('profileDesc').value);
+            if (el('profileAvatar')) setCfg('profileAvatar', el('profileAvatar').value);
+
+            if (el('galleryCols')) setCfg('galleryCols', parseInt(el('galleryCols').value) || 3);
+            if (el('galleryGap')) setCfg('galleryGap', parseInt(el('galleryGap').value) || 10);
+
+            if (el('emojiCols')) setCfg('emojiCols', parseInt(el('emojiCols').value) || 12);
+            if (el('emojiSpeed')) setCfg('emojiSpeed', parseInt(el('emojiSpeed').value) || 30);
+            if (el('emojiOpacity')) setCfg('emojiOpacity', parseFloat(el('emojiOpacity').value) || 0.6);
+            if (el('emojiDirection')) setCfg('emojiDirection', el('emojiDirection').value);
+
+            saveConfig();
         }
 
-        function saveGalleryImages(images) {
-            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            s.galleryImages = images;
-            localStorage.setItem('nora_settings', JSON.stringify(s));
-        }
+        function applyAll() {
+            var theme = getCfg('theme', 'dark');
+            document.documentElement.setAttribute('data-theme', theme);
+            var themeCard = document.querySelector('.mode-card[data-theme="' + theme + '"]');
+            if (themeCard) themeCard.classList.add('active');
 
-        function renderGalleryList() {
-            const list = document.getElementById('galleryImageList');
-            const images = getGalleryImages();
-            list.innerHTML = images.map((img, i) => `
-                <div class="gallery-img-row">
-                    <div class="thumb"><img src="${img.src}" alt="" onerror="this.style.display='none'"></div>
-                    <input type="text" value="${img.src.replace(/"/g, '&quot;')}" oninput="updateGallerySrc(${i}, this.value)">
-                    ${img.tall ? '<span class="tall-badge">TALL</span>' : ''}
-                    <button class="btn btn-sm" onclick="toggleGalleryTall(${i})" style="width:28px;font-size:1rem">↕</button>
-                    <button class="btn btn-sm btn-danger" onclick="removeGalleryImage(${i})" style="font-size:1rem">✕</button>
-                </div>
-            `).join('');
-        }
+            var mode = getCfg('homeMode', 'art');
+            var modeCard = document.querySelector('.mode-card[data-mode="' + mode + '"]');
+            if (modeCard) modeCard.classList.add('active');
+            var hero = document.getElementById('heroImageSection');
+            var emoji = document.getElementById('emojiSection');
+            if (hero) hero.style.display = mode === 'art' ? 'block' : 'none';
+            if (emoji) emoji.style.display = mode === 'emoji' ? 'block' : 'none';
 
-        function updateGallerySrc(idx, value) {
-            const images = getGalleryImages();
-            images[idx].src = value.trim();
-            saveGalleryImages(images);
-        }
+            var setVal = function(id, def) {
+                var e = document.getElementById(id);
+                if (e) e.value = getCfg(id.replace('link','link').replace('profile','profile').replace('gallery','gallery').replace('emoji','emoji'), def);
+            };
 
-        function toggleGalleryTall(idx) {
-            const images = getGalleryImages();
-            images[idx].tall = !images[idx].tall;
-            saveGalleryImages(images);
+            if (document.getElementById('linkBilibili')) document.getElementById('linkBilibili').value = getCfg('linkBilibili', '');
+            if (document.getElementById('linkTwitter')) document.getElementById('linkTwitter').value = getCfg('linkTwitter', '');
+            if (document.getElementById('linkPixiv')) document.getElementById('linkPixiv').value = getCfg('linkPixiv', '');
+
+            if (document.getElementById('profileName')) document.getElementById('profileName').value = getCfg('profileName', '');
+            if (document.getElementById('profileNameEn')) document.getElementById('profileNameEn').value = getCfg('profileNameEn', '');
+            if (document.getElementById('profileTagline')) document.getElementById('profileTagline').value = getCfg('profileTagline', '');
+            if (document.getElementById('profileBday')) document.getElementById('profileBday').value = getCfg('profileBday', '');
+            if (document.getElementById('profileRace')) document.getElementById('profileRace').value = getCfg('profileRace', '');
+            if (document.getElementById('profileTrait')) document.getElementById('profileTrait').value = getCfg('profileTrait', '');
+            if (document.getElementById('profileLang')) document.getElementById('profileLang').value = getCfg('profileLang', '');
+            if (document.getElementById('profileActivity')) document.getElementById('profileActivity').value = getCfg('profileActivity', '');
+            if (document.getElementById('profileDesc')) document.getElementById('profileDesc').value = getCfg('profileDesc', '');
+            if (document.getElementById('profileAvatar')) document.getElementById('profileAvatar').value = getCfg('profileAvatar', '');
+
+            if (document.getElementById('galleryCols')) document.getElementById('galleryCols').value = getCfg('galleryCols', 3);
+            if (document.getElementById('galleryGap')) document.getElementById('galleryGap').value = getCfg('galleryGap', 10);
+
+            if (document.getElementById('emojiCols')) document.getElementById('emojiCols').value = getCfg('emojiCols', 12);
+            if (document.getElementById('emojiSpeed')) document.getElementById('emojiSpeed').value = getCfg('emojiSpeed', 30);
+            if (document.getElementById('emojiOpacity')) document.getElementById('emojiOpacity').value = getCfg('emojiOpacity', 0.6);
+            if (document.getElementById('emojiDirection')) document.getElementById('emojiDirection').value = getCfg('emojiDirection', 'vertical');
+
+            buildHeroImageGrid();
             renderGalleryList();
+            renderVideoList();
+            renderGoodsList();
         }
 
-        function removeGalleryImage(idx) {
-            const images = getGalleryImages();
-            images.splice(idx, 1);
-            saveGalleryImages(images);
-            renderGalleryList();
-            showToast('已删除');
-        }
-
-        function addGalleryImage() {
-            const url = document.getElementById('newGalleryImg').value.trim();
-            if (!url) { showToast('请输入图片URL'); return; }
-            const tall = document.getElementById('newGalleryTall').value === '1';
-            const images = getGalleryImages();
-            images.push({ src: url, tall });
-            saveGalleryImages(images);
-            document.getElementById('newGalleryImg').value = '';
-            renderGalleryList();
-            showToast('已添加');
-        }
-
-        async function uploadGalleryImage(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const form = new FormData();
+        // ===== Upload helper =====
+        async function apiUpload(file) {
+            var form = new FormData();
             form.append('file', file);
-            try {
-                const resp = await fetch('/api/upload', { method: 'POST', body: form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) {
-                    document.getElementById('newGalleryImg').value = data.paths[0];
-                    showToast('上传成功');
-                } else {
-                    showToast('上传失败: ' + (data.error || '未知错误'));
-                }
-            } catch (e) {
-                showToast('上传失败: ' + e.message);
-            }
+            var r = await fetch(WORKER_URL + '/upload', { method: 'POST', body: form });
+            if (!r.ok) throw new Error('Upload failed');
+            var data = await r.json();
+            return data;
         }
 
-        // ===== MOVIE management =====
-        const DEFAULT_MOVIES = [
-            { src: 'images/vid_1.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_3.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_4.jpg', link: 'https://space.bilibili.com/86471108' },
-            { src: 'images/vid_6.jpg', link: 'https://space.bilibili.com/86471108' },
-        ];
-
-        function getMovies() {
-            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            if (s.movies) return s.movies;
-            return JSON.parse(JSON.stringify(DEFAULT_MOVIES));
+        // ===== Gallery management =====
+        function getGalleryImages() { return getCfg('galleryImages', []); }
+        function saveGalleryImages(arr) { setCfg('galleryImages', arr); autoSaveSettings(); }
+        function renderGalleryList() {
+            var list = document.getElementById('galleryImageList');
+            if (!list) return;
+            list.innerHTML = getGalleryImages().map(function(g, i) {
+                return '<div class="gallery-img-row">' +
+                    '<div class="thumb"><img src="' + g.src + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<input type="text" value="' + g.src.replace(/"/g,'&quot;') + '" oninput="updateGallerySrc(' + i + ',this.value)" style="flex:1">' +
+                    '<button class="btn btn-sm btn-danger" onclick="removeGalleryItem(' + i + ')">✕</button>' +
+                    '</div>';
+            }).join('');
         }
-        function saveMovies(arr) {
-            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            s.movies = arr;
-            localStorage.setItem('nora_settings', JSON.stringify(s));
-        }
-        function renderMovieList() {
-            const list = document.getElementById('movieItemList');
-            const items = getMovies();
-            list.innerHTML = items.map((m, i) => `
-                <div class="gallery-img-row">
-                    <div class="thumb"><img src="${m.src}" alt="" onerror="this.style.display='none'"></div>
-                    <input type="text" value="${m.src.replace(/"/g,'&quot;')}" oninput="updateMovieSrc(${i},this.value)" style="flex:1">
-                    <input type="text" value="${m.link.replace(/"/g,'&quot;')}" oninput="updateMovieLink(${i},this.value)" style="flex:1">
-                    <button class="btn btn-sm btn-danger" onclick="removeMovieItem(${i})" style="font-size:1rem">✕</button>
-                </div>
-            `).join('');
-        }
-        function updateMovieSrc(idx, v) { const m = getMovies(); m[idx].src = v.trim(); saveMovies(m); }
-        function updateMovieLink(idx, v) { const m = getMovies(); m[idx].link = v.trim(); saveMovies(m); }
-        function removeMovieItem(idx) { const m = getMovies(); m.splice(idx,1); saveMovies(m); renderMovieList(); }
-        function addMovieItem() {
-            const src = document.getElementById('newMovieImg').value.trim();
-            const link = document.getElementById('newMovieLink').value.trim();
-            if (!src) { showToast('请输入图片URL'); return; }
-            const m = getMovies();
-            m.push({ src, link: link || '#' });
-            saveMovies(m);
-            document.getElementById('newMovieImg').value = '';
-            document.getElementById('newMovieLink').value = '';
-            renderMovieList();
+        function updateGallerySrc(idx, v) { var g = getGalleryImages(); g[idx].src = v.trim(); saveGalleryImages(g); }
+        function removeGalleryItem(idx) { var g = getGalleryImages(); g.splice(idx,1); saveGalleryImages(g); renderGalleryList(); }
+        function addGalleryFromUrl() {
+            var url = document.getElementById('newGalleryUrl').value.trim();
+            if (!url) { showToast('请输入图片URL'); return; }
+            var g = getGalleryImages();
+            g.push({ src: url, title: '' });
+            saveGalleryImages(g);
+            document.getElementById('newGalleryUrl').value = '';
+            renderGalleryList();
             showToast('已添加');
         }
-        async function uploadMovieImage(input) {
-            const file = input.files[0];
+        async function uploadGalleryImage(input) {
+            var file = input.files[0];
             if (!file) return;
-            const form = new FormData(); form.append('file', file);
             try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) { document.getElementById('newMovieImg').value = data.paths[0]; showToast('上传成功'); }
-                else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
+                var data = await apiUpload(file);
+                var g = getGalleryImages();
+                g.push({ src: data.url, title: '' });
+                saveGalleryImages(g);
+                renderGalleryList();
+                showToast('上传成功');
+            } catch(e) { showToast('上传失败: ' + e.message); }
         }
 
-        // Avatar upload
-        async function uploadAvatarImage(input) {
-            const file = input.files[0];
+        // ===== Video management =====
+        function getVideoList() { return getCfg('videoList', []); }
+        function saveVideoList(arr) { setCfg('videoList', arr); autoSaveSettings(); }
+        function renderVideoList() {
+            var list = document.getElementById('videoItemList');
+            if (!list) return;
+            list.innerHTML = getVideoList().map(function(v, i) {
+                return '<div class="gallery-img-row">' +
+                    '<div class="thumb"><img src="' + v.cover + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<input type="text" value="' + v.cover.replace(/"/g,'&quot;') + '" oninput="updateVideoCover(' + i + ',this.value)" style="flex:1" placeholder="封面图URL">' +
+                    '<input type="text" value="' + (v.link||'').replace(/"/g,'&quot;') + '" oninput="updateVideoLink(' + i + ',this.value)" style="flex:1" placeholder="B站BV号或链接">' +
+                    '<button class="btn btn-sm btn-danger" onclick="removeVideoItem(' + i + ')">✕</button>' +
+                    '</div>';
+            }).join('');
+        }
+        function updateVideoCover(idx, v) { var lst = getVideoList(); lst[idx].cover = v.trim(); saveVideoList(lst); }
+        function updateVideoLink(idx, v) { var lst = getVideoList(); lst[idx].link = v.trim(); saveVideoList(lst); }
+        function removeVideoItem(idx) { var lst = getVideoList(); lst.splice(idx,1); saveVideoList(lst); renderVideoList(); }
+        function addVideoItem() {
+            var cover = document.getElementById('newVideoCover').value.trim();
+            var link = document.getElementById('newVideoLink').value.trim();
+            if (!cover) { showToast('请输入封面图URL'); return; }
+            var lst = getVideoList();
+            lst.push({ cover: cover, link: link || '#' });
+            saveVideoList(lst);
+            document.getElementById('newVideoCover').value = '';
+            document.getElementById('newVideoLink').value = '';
+            renderVideoList();
+            showToast('已添加');
+        }
+        async function uploadVideoCover(input) {
+            var file = input.files[0];
             if (!file) return;
-            const form = new FormData(); form.append('file', file);
             try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) {
-                    document.getElementById('profileAvatar').value = data.paths[0];
-                    autoSaveSettings();
-                    showToast('上传成功');
-                } else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
+                var data = await apiUpload(file);
+                document.getElementById('newVideoCover').value = data.url;
+                showToast('上传成功');
+            } catch(e) { showToast('上传失败: ' + e.message); }
         }
 
         // ===== GOODS management =====
-        function getGoods() {
-            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            if (s.goods) return s.goods;
-            return [];
-        }
-        function saveGoods(arr) {
-            const s = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-            s.goods = arr;
-            localStorage.setItem('nora_settings', JSON.stringify(s));
-        }
+        function getGoods() { return getCfg('goods', []); }
+        function saveGoods(arr) { setCfg('goods', arr); autoSaveSettings(); }
         function renderGoodsList() {
-            const list = document.getElementById('goodsItemList');
-            const items = getGoods();
-            list.innerHTML = items.map((g, i) => `
-                <div class="gallery-img-row">
-                    <div class="thumb"><img src="${g.src}" alt="" onerror="this.style.display='none'"></div>
-                    <input type="text" value="${g.src.replace(/"/g,'&quot;')}" oninput="updateGoodsSrc(${i},this.value)" style="flex:1">
-                    <input type="text" value="${g.link.replace(/"/g,'&quot;')}" oninput="updateGoodsLink(${i},this.value)" style="flex:1">
-                    <button class="btn btn-sm btn-danger" onclick="removeGoodsItem(${i})" style="font-size:1rem">✕</button>
-                </div>
-            `).join('');
+            var list = document.getElementById('goodsItemList');
+            if (!list) return;
+            list.innerHTML = getGoods().map(function(g, i) {
+                return '<div class="gallery-img-row">' +
+                    '<div class="thumb"><img src="' + g.src + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<input type="text" value="' + g.src.replace(/"/g,'&quot;') + '" oninput="updateGoodsSrc(' + i + ',this.value)" style="flex:1">' +
+                    '<input type="text" value="' + (g.link||'').replace(/"/g,'&quot;') + '" oninput="updateGoodsLink(' + i + ',this.value)" style="flex:1">' +
+                    '<button class="btn btn-sm btn-danger" onclick="removeGoodsItem(' + i + ')">✕</button>' +
+                    '</div>';
+            }).join('');
         }
-        function updateGoodsSrc(idx, v) { const g = getGoods(); g[idx].src = v.trim(); saveGoods(g); }
-        function updateGoodsLink(idx, v) { const g = getGoods(); g[idx].link = v.trim(); saveGoods(g); }
-        function removeGoodsItem(idx) { const g = getGoods(); g.splice(idx,1); saveGoods(g); renderGoodsList(); }
+        function updateGoodsSrc(idx, v) { var g = getGoods(); g[idx].src = v.trim(); saveGoods(g); }
+        function updateGoodsLink(idx, v) { var g = getGoods(); g[idx].link = v.trim(); saveGoods(g); }
+        function removeGoodsItem(idx) { var g = getGoods(); g.splice(idx,1); saveGoods(g); renderGoodsList(); }
         function addGoodsItem() {
-            const src = document.getElementById('newGoodsImg').value.trim();
-            const link = document.getElementById('newGoodsLink').value.trim();
+            var src = document.getElementById('newGoodsImg').value.trim();
+            var link = document.getElementById('newGoodsLink').value.trim();
             if (!src) { showToast('请输入图片URL'); return; }
-            const g = getGoods();
-            g.push({ src, link: link || '#' });
+            var g = getGoods();
+            g.push({ src: src, link: link || '#' });
             saveGoods(g);
             document.getElementById('newGoodsImg').value = '';
             document.getElementById('newGoodsLink').value = '';
@@ -648,42 +609,28 @@
             showToast('已添加');
         }
         async function uploadGoodsImage(input) {
-            const file = input.files[0];
+            var file = input.files[0];
             if (!file) return;
-            const form = new FormData(); form.append('file', file);
             try {
-                const resp = await fetch('/api/upload', { method:'POST', body:form });
-                const data = await resp.json();
-                if (data.paths && data.paths[0]) { document.getElementById('newGoodsImg').value = data.paths[0]; showToast('上传成功'); }
-                else showToast('上传失败');
-            } catch(e) { showToast('上传失败: '+e.message); }
+                var data = await apiUpload(file);
+                document.getElementById('newGoodsImg').value = data.url;
+                showToast('上传成功');
+            } catch(e) { showToast('上传失败: ' + e.message); }
         }
 
-        function previewSettings() {
-            saveSettings();
-            window.open('index.html', '_blank');
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
+        // ===== Profile avatar upload =====
+        async function uploadProfileAvatar(input) {
+            var file = input.files[0];
+            if (!file) return;
+            try {
+                var data = await apiUpload(file);
+                document.getElementById('profileAvatar').value = data.url;
+                autoSaveSettings();
+                showToast('上传成功');
+            } catch(e) { showToast('上传失败: ' + e.message); }
         }
 
         // ===== Init =====
-        const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-        const savedTheme = settings.theme || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector(`.mode-card[data-theme="${savedTheme}"]`)?.classList.add('active');
-
-        const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-        selectMode(savedMode);
-        buildHeroImageGrid();
-        loadSettings();
-        renderGalleryList();
-        renderMovieList();
-        renderGoodsList();
+        loadConfig();
     </script>
-</body>
-</html>
+

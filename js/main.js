@@ -1,59 +1,77 @@
-// 绫月乃萝 Fan Site — main.js
+// 绫月乃萝 Fan Site — main.js (v0.5 — 远程配置同步)
+
+// ===== 远程配置 API =====
+var WORKER_URL = 'https://nora-cdn.YOUR_SUBDOMAIN.workers.dev';
+var remoteConfig = {};
+
+async function loadRemoteConfig() {
+    try {
+        var r = await fetch(WORKER_URL + '/config');
+        if (r.ok) remoteConfig = await r.json();
+    } catch (e) {
+        console.warn('Failed to load remote config, using defaults');
+    }
+    applyAllConfig();
+}
+
+function getCfg(key, def) {
+    return remoteConfig[key] !== undefined ? remoteConfig[key] : def;
+}
 
 // ===== 主题 =====
 (function initTheme() {
-    const saved = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    const theme = saved.theme || 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', 'dark');
 })();
 
 // ===== 侧边导航 =====
-const navToggle = document.getElementById('navToggle');
-const sideNav = document.getElementById('sideNav');
+var navToggle = document.getElementById('navToggle');
+var sideNav = document.getElementById('sideNav');
 
-navToggle.addEventListener('click', () => {
-    sideNav.classList.toggle('open');
+if (navToggle) {
+    navToggle.addEventListener('click', function() {
+        sideNav.classList.toggle('open');
+    });
+}
+
+document.querySelectorAll('.nav-menu a').forEach(function(link) {
+    link.addEventListener('click', function() { sideNav.classList.remove('open'); });
 });
 
-document.querySelectorAll('.nav-menu a').forEach(link => {
-    link.addEventListener('click', () => sideNav.classList.remove('open'));
-});
-
-document.addEventListener('click', (e) => {
-    if (sideNav.classList.contains('open') && !sideNav.contains(e.target)) {
+document.addEventListener('click', function(e) {
+    if (sideNav && sideNav.classList.contains('open') && !sideNav.contains(e.target)) {
         sideNav.classList.remove('open');
     }
 });
 
 // 平滑滚动
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
     anchor.addEventListener('click', function(e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        var target = document.querySelector(this.getAttribute('href'));
         if (target) target.scrollIntoView({ behavior: 'smooth' });
     });
 });
 
 // 导航高亮
-const sections = document.querySelectorAll('section');
-const navItems = document.querySelectorAll('.nav-menu a');
+var sections = document.querySelectorAll('section');
+var navItems = document.querySelectorAll('.nav-menu a');
 
-window.addEventListener('scroll', () => {
-    let current = '';
-    sections.forEach(section => {
+window.addEventListener('scroll', function() {
+    var current = '';
+    sections.forEach(function(section) {
         if (scrollY >= section.offsetTop - 300) {
             current = section.getAttribute('id');
         }
     });
-    navItems.forEach(item => {
+    navItems.forEach(function(item) {
         item.classList.remove('active');
         if (item.getAttribute('href') === '#' + current) item.classList.add('active');
     });
 });
 
 // ===== Emoji Waterfall =====
-const EMOJI_DIR = 'noraemoji/';
-const EMOJI_FILES = [
+var EMOJI_DIR = 'noraemoji/';
+var EMOJI_FILES = [
     '07A21E208726EF4EB062DF73BAD53FB3.jpg','07F75AAEE5082ECE32FBDE5DF30EBE5C.jpg',
     '09C48661C3A867F93DE50372FC2242E0.jpg','0A93F80FBF07C300E1766F62FB56494E.jpg',
     '0B0B3F4E6903A1405EB14B58BA22E414.jpg','0CEAC306CCC3E7253F2D121CB92C85F6.jpg',
@@ -69,56 +87,52 @@ const EMOJI_FILES = [
     '6466766D95D26720AC74324E14690344.jpg','6944E0073740D2F9CE05E83A4DB26C4D.jpg',
     '6A75F77A0A651EDC9D8C350DA048EE3B.jpg','6D9F83905C4CA64F1765F2DD1858CB02.jpg',
     '6DB1BA122B06DF60251213799E5BFD0C.jpg','6FD31BFCC51043C0BC590001615498E8.jpg',
-    '7321DDF46647F6E565C3CBE710DAD2FB.jpg','7B0246E719DAF65CC6C2B334219C034F.jpg',
-    '7B0E6A1F357A048FF8A744BDD79884EC.jpg','7C2D5EEE8D60E9C2B09755A09293FAE9.jpg',
-    '86751FE53B6E5734B20D0BFE468E12E8.jpg','8F1331569D8C711F618580D05A210714.jpg',
-    '907F06D73D75F0177E52D97FC37A7571.jpg','99CC4147FF0CA2761A9AC2346369597D.jpg',
-    'A44384A7AA6EBEE761561F8DE1CA95A4.jpg','A5439738BD7D52A21907409E59C90F0F.jpg',
-    'A8A6BD04E64BDE9CFA7D0CCF37804389.jpg','AC301E79D05800CE094C58189DE28275.jpg',
-    'B1704E07EA0BD483A73CB0FFAC14071D.jpg','B7112E141715BAEB0AF840AE5341DB73.jpg',
-    'C380DC4C6500C82000BB495E8F653624.jpg','C645616D70BB67D6004F096A04A41895.jpg',
-    'CA6A33D75FB2A13B08C39D60702DAA2F.jpg','CCC4C94D8FEA55DE4ADEEA13CC9ABD15.jpg',
-    'CEE031871574F54C2E4401F92B94D119.jpg','D48A501A06871E855B6CFD8907BA0DFA.jpg',
-    'D740DB85DE836F76E9B23C87AD7B9CC0.jpg','DC1F94F6B48C88A959D5D758F9FB2756.jpg',
-    'F2F2AEDAC29BB574C4D2D6E0BF260680.jpg','F33F42F8FD8165AF97B050C8697ED258.jpg',
-    'F3DDF126C91C40BF7CE11A6E9FCD7F45.jpg','F45E5201D77E5BBED661E72D8C2C2E16.jpg',
-    'F52E085E18A76C7D6A6D81D357433B39.jpg','F74B5D8E04C0B3251FB996FDFD422CE0.jpg',
-    'FA5BFF90D9E0B4D0247CDF53C5AA1859.jpg','FCB253DE0E1A1E9ADD9DF087A1139AAB.jpg',
+    '7321DDF46647F6E565C3CBE71AFF0E15.jpg','74C0C3D7DBF2F8BAC2F46CB88FAD6C1B.jpg',
+    '7550CCD0B2BF21E0DEBFF66A2D2A1B26.jpg','7B4FFDB0E21E7BAABD1E7ABBF66C3C62.jpg',
+    '7D1E1E2B8C2F3D3A4E9F1A2C8D1B1E1D.jpg','7E8FBD2F38F6DA55FDFCB1F4A6B0DE0F.jpg',
+    '85AF4EE0D9C5E7F5D4A0B1BE91C0A90E.jpg','8FB96AE6BA9F30F5C5A3F2D6D37CDC8E.jpg',
+    '907F06D73D75F0177E52D97FC37A7571.jpg','90FAA9F8FBB3EF8EBD6E8A6E4F7D8B2F.jpg',
+    '95B7F4E8FC4CBEBDCD6C48B09B7EEC1B.jpg','9C2CCFB7A4B90AA9FD53E79A0E4F6F21.jpg',
+    'A0B3BB26E3A2D7BBD64F2F4AA6D4E2CC.jpg','A43C4E17F2A8A5C1B2C2EFBDA7CD6EF4.jpg',
+    'ABAFE3E2C4A8FDACDAB1B78E75CA9DE2.jpg','AD2DED7F4C56E7F2FA7A5F63CB6C7D23.jpg',
+    'B2F8C2C16EAD9E07CF9F5B2F0F5E1B9A.jpg','B7C8DEA1C2E2CE3D2B8A0D2E5C8A1B6E.jpg',
+    'BD4D4E8A6DC6F4A7A0E7AC0C6AA0C9BE.jpg','C6DF5FD7F6A8D1FCFE8B2CC6B3EA7DBD.jpg',
+    'CDBC0F7E2BBCD7D8DAFDFE2CA4E3D4A7.jpg','D4ADEA8BD4F0AB8DE7BCFB7BB5CCF6D5.jpg',
+    'DD7FAE4DE4F7A5C2BE5EA0F5EA2C3C8F.jpg','E2E2A3F3EF9F2FB3F4A3FA1C4BCD6D02.jpg',
+    'E8CDA8E8C5A2BAFDDC5B0BFF2FEF9CD1.jpg','F0A8C7E0D4C7DDA2D2BC0BCA4DD0FA2C.jpg',
 ];
 
-function shuffleArray(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
+function shuffleArray(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
     }
     return a;
 }
 
 function buildEmojiWaterfall() {
-    const container = document.getElementById('emojiWaterfall');
+    var container = document.getElementById('emojiWaterfall');
     if (!container) return;
     container.innerHTML = '';
 
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    const emojiSettings = settings.emoji || {};
-    const columnCount = parseInt(emojiSettings.cols) || (window.innerWidth < 600 ? 6 : window.innerWidth < 1000 ? 8 : 12);
-    const baseSpeed = parseInt(emojiSettings.speed) || 30;
-    const imgOpacity = parseFloat(emojiSettings.opacity) || 0.6;
+    var emojiSettings = getCfg('emoji', {});
+    var columnCount = parseInt(emojiSettings.cols) || (window.innerWidth < 600 ? 6 : window.innerWidth < 1000 ? 8 : 12);
+    var baseSpeed = parseInt(emojiSettings.speed) || 30;
+    var imgOpacity = parseFloat(emojiSettings.opacity) || 0.6;
+    var direction = emojiSettings.direction || 'vertical';
 
-    for (let col = 0; col < columnCount; col++) {
-        const colEl = document.createElement('div');
+    for (var col = 0; col < columnCount; col++) {
+        var colEl = document.createElement('div');
         colEl.className = 'emoji-column' + (col % 2 === 1 ? ' reverse' : '');
-        const direction = emojiSettings.direction || 'vertical';
         if (direction === 'diagonal-left') colEl.classList.add('diagonal-left');
         if (direction === 'diagonal-right') colEl.classList.add('diagonal-right');
-        const duration = baseSpeed + (Math.random() - 0.5) * 15;
+        var duration = baseSpeed + (Math.random() - 0.5) * 15;
         colEl.style.setProperty('--scroll-duration', duration + 's');
 
-        const shuffled = shuffleArray(EMOJI_FILES);
-        const doubled = [...shuffled, ...shuffled];
-        doubled.forEach(file => {
-            const img = document.createElement('img');
+        var shuffled = shuffleArray(EMOJI_FILES.slice());
+        var doubled = shuffled.concat(shuffled);
+        doubled.forEach(function(file) {
+            var img = document.createElement('img');
             img.src = EMOJI_DIR + file;
             img.alt = '';
             img.loading = 'lazy';
@@ -128,308 +142,341 @@ function buildEmojiWaterfall() {
         container.appendChild(colEl);
     }
 
-    // 斜向模式：容器扩展宽度填满旋转空白
-    const dir = emojiSettings.direction || 'vertical';
-    if (dir === 'diagonal-left' || dir === 'diagonal-right') {
+    if (direction === 'diagonal-left' || direction === 'diagonal-right') {
         container.classList.add('diagonal-mode');
     } else {
         container.classList.remove('diagonal-mode');
     }
 }
 
-// ===== 首页模式切换 =====
-function applyHomeMode(mode) {
-    const artMode = document.querySelector('.hero-mode-art');
-    const emojiMode = document.querySelector('.hero-mode-emoji');
-    if (mode === 'emoji') {
-        artMode.style.display = 'none';
-        emojiMode.style.display = 'block';
-        buildEmojiWaterfall();
-    } else {
-        artMode.style.display = 'block';
-        emojiMode.style.display = 'none';
+// ===== 应用所有远程配置 =====
+function applyAllConfig() {
+    // 主题
+    var theme = getCfg('theme', 'dark');
+    document.documentElement.setAttribute('data-theme', theme);
+
+    // Home Mode
+    var mode = getCfg('homeMode', 'art');
+    var artMode = document.querySelector('.hero-mode-art');
+    var emojiMode = document.querySelector('.hero-mode-emoji');
+
+    if (artMode && emojiMode) {
+        if (mode === 'emoji') {
+            artMode.style.display = 'none';
+            emojiMode.style.display = 'block';
+            buildEmojiWaterfall();
+        } else {
+            artMode.style.display = 'block';
+            emojiMode.style.display = 'none';
+        }
     }
-    localStorage.setItem('nora_home_mode', mode);
+
+    // Hero 背景图
+    var heroImage = getCfg('heroImage', 'images/pixiv_hd_1.jpg');
+    var heroBg = document.getElementById('heroBg');
+    if (heroBg && heroImage) {
+        heroBg.style.backgroundImage = 'url(\'' + heroImage + '\')';
+    }
+
+    // 画廊
+    renderGallery();
+
+    // 视频
+    renderVideos();
+
+    // 周边
+    renderGoods();
+
+    // Profile
+    renderProfile();
+
+    // Emoji waterfall（如果是 emoji 模式）
+    if (mode === 'emoji') {
+        buildEmojiWaterfall();
+    }
 }
-
-// 读取保存的模式和设置
-const savedSettings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-const savedMode = localStorage.getItem('nora_home_mode') || 'art';
-const savedHeroImage = localStorage.getItem('nora_hero_image') || 'images/pixiv_hd_1.jpg';
-
-// 应用Hero背景图
-if (savedHeroImage && document.getElementById('heroBg')) {
-    document.getElementById('heroBg').style.backgroundImage = `url('${savedHeroImage}')`;
-}
-
-applyHomeMode(savedMode);
 
 // ===== 动态画廊 =====
-(function renderGallery() {
-    const grid = document.getElementById('masonryGrid');
+function renderGallery() {
+    var grid = document.getElementById('masonryGrid');
     if (!grid) return;
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.galleryImages || !settings.galleryImages.length) return; // 用默认HTML
-    grid.innerHTML = settings.galleryImages.map(img => {
-        return `<div class="masonry-item${img.tall ? ' tall' : ''}"><img src="${img.src}" alt="" loading="lazy"></div>`;
+    var images = getCfg('galleryImages', []);
+    if (!images.length) return;
+    grid.innerHTML = images.map(function(img) {
+        return '<div class="masonry-item' + (img.tall ? ' tall' : '') + '"><img src="' + img.src + '" alt="" loading="lazy"></div>';
     }).join('');
-})();
+}
 
-// ===== 动态 Movies =====
-(function renderMovies() {
-    const grid = document.getElementById('videosGrid');
+// ===== 动态视频 =====
+function renderVideos() {
+    var grid = document.getElementById('videosGrid');
     if (!grid) return;
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.movies || !settings.movies.length) return;
-    grid.innerHTML = settings.movies.map(m => `
-        <a href="${m.link}" target="_blank" class="video-card">
-            <div class="video-thumb">
-                <img src="${m.src}" alt="">
-                <div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>
-            </div>
-        </a>
-    `).join('');
-})();
+    var videos = getCfg('videoList', []);
+    if (!videos.length) return;
+    grid.innerHTML = videos.map(function(v) {
+        return '<a href="' + (v.link || '#') + '" target="_blank" class="video-card">' +
+            '<div class="video-thumb"><img src="' + v.cover + '" alt="">' +
+            '<div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>' +
+            '</div></a>';
+    }).join('');
+}
 
 // ===== 动态 Goods =====
-(function renderGoods() {
-    const grid = document.getElementById('goodsGrid');
+function renderGoods() {
+    var grid = document.getElementById('goodsGrid');
     if (!grid) return;
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.goods || !settings.goods.length) return;
-    grid.innerHTML = settings.goods.map(g => `
-        <a href="${g.link}" target="_blank" class="goods-card">
-            <div class="goods-thumb"><img src="${g.src}" alt=""></div>
-        </a>
-    `).join('');
-})();
+    var goods = getCfg('goods', []);
+    if (!goods.length) return;
+    grid.innerHTML = goods.map(function(g) {
+        return '<a href="' + (g.link || '#') + '" target="_blank" class="goods-card">' +
+            '<div class="goods-thumb"><img src="' + g.src + '" alt=""></div></a>';
+    }).join('');
+}
 
 // ===== 动态 Profile =====
-(function renderProfile() {
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (!settings.profile) return;
+function renderProfile() {
+    var profile = getCfg('profile', {});
+    if (!profile) return;
 
-    const p = settings.profile;
-    const h3 = document.querySelector('.profile-info h3');
-    const sub = document.querySelector('.profile-info .profile-sub');
-    const desc = document.querySelector('.profile-info .profile-desc');
-    const table = document.querySelector('.profile-table');
+    var p = profile;
+    var h3 = document.querySelector('.profile-info h3');
+    var sub = document.querySelector('.profile-info .profile-sub');
+    var desc = document.querySelector('.profile-info .profile-desc');
+    var table = document.querySelector('.profile-table');
 
     if (h3 && p.name) h3.textContent = p.name;
     if (sub && p.nameEn) sub.textContent = p.nameEn;
     if (desc && p.desc) desc.textContent = p.desc;
 
-    // 从表格读取已有行映射
-    const fieldMap = {
-        '誕生日': 'bday', '種族': 'race', '特性': 'trait',
-        '言語': 'lang', '活動': 'activity'
+    var fieldMap = {
+        '生日': p.bday,
+        '种族': p.race,
+        '特征': p.trait,
+        '语言': p.lang,
+        '活动': p.activity,
     };
+
     if (table) {
-        table.querySelectorAll('tr').forEach(tr => {
-            const th = tr.querySelector('th');
-            const td = tr.querySelector('td');
-            if (!th || !td) return;
-            const key = fieldMap[th.textContent.trim()];
-            if (key && p[key]) td.textContent = p[key];
+        table.querySelectorAll('tr').forEach(function(row) {
+            var label = row.querySelector('th');
+            var value = row.querySelector('td');
+            if (label && value && fieldMap[label.textContent.trim()]) {
+                value.textContent = fieldMap[label.textContent.trim()];
+            }
         });
     }
 
-    // 头像
+    // Avatar
     if (p.avatar) {
-        const avatarImg = document.querySelector('.profile-avatar img');
+        var avatarImg = document.querySelector('.profile-avatar img');
         if (avatarImg) avatarImg.src = p.avatar;
     }
-})();
 
-// ===== 滚动动画 =====
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-            const delay = Array.from(entry.target.parentNode.children).indexOf(entry.target) * 80;
-            setTimeout(() => {
-                entry.target.classList.add('visible');
-            }, Math.min(delay, 500));
-        }
-    });
-}, { threshold: 0.1 });
-
-document.querySelectorAll('.masonry-item, .video-card, .game-card, .profile-content').forEach(el => {
-    observer.observe(el);
-});
-
-// ===== Lightbox =====
-const lightbox = document.createElement('div');
-lightbox.className = 'lightbox';
-lightbox.innerHTML = '<img src="" alt=""><button class="lightbox-close">&times;</button>';
-document.body.appendChild(lightbox);
-
-const lbStyle = document.createElement('style');
-lbStyle.textContent = `
-    .lightbox { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; cursor:zoom-out; }
-    .lightbox.active { display:flex; }
-    .lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:4px; }
-    .lightbox-close { position:absolute; top:20px; right:30px; background:none; border:none; color:white; font-size:2rem; cursor:pointer; opacity:0.5; transition:opacity 0.3s; }
-    .lightbox-close:hover { opacity:1; }
-`;
-document.head.appendChild(lbStyle);
-
-document.querySelectorAll('.masonry-item img').forEach(img => {
-    img.addEventListener('click', () => {
-        lightbox.querySelector('img').src = img.src;
-        lightbox.classList.add('active');
-    });
-});
-
-lightbox.addEventListener('click', () => lightbox.classList.remove('active'));
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lightbox.classList.remove('active'); });
-
-// ===== 游戏系统 =====
-let currentGame = null;
-
-function loadGame(gameName) {
-    const container = document.getElementById('gameContainer');
-    container.classList.add('active');
-    container.scrollIntoView({ behavior: 'smooth' });
-    switch(gameName) {
-        case 'memory': initMemoryGame(container); break;
-        case 'catch': initCatchGame(container); break;
-        case 'quiz': initQuizGame(container); break;
-    }
-}
-
-function closeGame() {
-    document.getElementById('gameContainer').classList.remove('active');
-    currentGame = null;
-}
-
-function initMemoryGame(container) {
-    currentGame = 'memory';
-    const cards = ['🎨','🎨','🖌️','🖌️','✨','✨','🌙','🌙','⭐','⭐','💖','💖','🎀','🎀','🌸','🌸'];
-    for (let i = cards.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [cards[i], cards[j]] = [cards[j], cards[i]];
-    }
-    container.innerHTML = `
-        <div class="game-header"><h3>MEMORY</h3>
-            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="score">0</span> | Moves: <span id="moves">0</span></div>
-            <button class="close-game" onclick="closeGame()">×</button></div>
-        <div id="memoryGame" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:400px;margin:20px auto;"></div>`;
-    const game = document.getElementById('memoryGame');
-    let flippedCards = [], matchedPairs = 0, moves = 0, canFlip = true;
-    cards.forEach(emoji => {
-        const card = document.createElement('div');
-        card.dataset.emoji = emoji;
-        const inner = document.createElement('div');
-        inner.style.cssText = 'aspect-ratio:1;background:linear-gradient(135deg,rgba(200,162,232,0.2),rgba(255,126,179,0.2));border:1px solid var(--border);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:all 0.4s;color:transparent;';
-        inner.textContent = emoji;
-        card.appendChild(inner);
-        card.addEventListener('click', () => flipCard(card));
-        game.appendChild(card);
-    });
-    function flipCard(card) {
-        if (!canFlip || flippedCards.includes(card) || card.dataset.matched) return;
-        const inner = card.querySelector('div');
-        inner.style.color = 'var(--text)';
-        inner.style.background = 'rgba(200,162,232,0.1)';
-        flippedCards.push(card);
-        if (flippedCards.length === 2) { moves++; document.getElementById('moves').textContent = moves; checkMatch(); }
-    }
-    function checkMatch() {
-        canFlip = false;
-        const [c1, c2] = flippedCards;
-        if (c1.dataset.emoji === c2.dataset.emoji) {
-            matchedPairs++;
-            document.getElementById('score').textContent = matchedPairs * 10;
-            c1.dataset.matched = '1'; c2.dataset.matched = '1';
-            flippedCards = []; canFlip = true;
-            if (matchedPairs === cards.length / 2) setTimeout(() => alert('🎉 通关！ ' + moves + ' 步'), 300);
-        } else {
-            setTimeout(() => {
-                [c1, c2].forEach(c => { const i = c.querySelector('div'); i.style.color = 'transparent'; i.style.background = 'linear-gradient(135deg,rgba(200,162,232,0.2),rgba(255,126,179,0.2))'; });
-                flippedCards = []; canFlip = true;
-            }, 800);
-        }
-    }
-}
-
-function initCatchGame(container) {
-    currentGame = 'catch';
-    container.innerHTML = `
-        <div class="game-header"><h3>CATCH</h3>
-            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="catchScore">0</span></div>
-            <button class="close-game" onclick="closeGame()">×</button></div>
-        <canvas id="gameCanvas" width="480" height="360" style="display:block;margin:0 auto;border-radius:8px;border:1px solid var(--border);"></canvas>
-        <p style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin-top:10px">← → 移动</p>`;
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    let score = 0, frameCount = 0;
-    const player = { x: 215, y: 310, width: 50, height: 50 };
-    let stars = [], keys = {};
-    const onKey = (e, v) => { keys[e.key] = v; };
-    document.addEventListener('keydown', e => onKey(e, true));
-    document.addEventListener('keyup', e => onKey(e, false));
-    function gameLoop() {
-        if (!currentGame || currentGame !== 'catch') return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#0a0a0f'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        if (keys['ArrowLeft'] && player.x > 0) player.x -= 6;
-        if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += 6;
-        ctx.font = '36px Arial'; ctx.textAlign = 'center'; ctx.fillText('🎨', player.x + 25, player.y + 35);
-        if (frameCount % 35 === 0) stars.push({ x: Math.random() * (canvas.width - 30), y: 0, speed: 2 + Math.random() * 2.5 });
-        stars.forEach((s, i) => {
-            s.y += s.speed; ctx.font = '24px Arial'; ctx.fillText('⭐', s.x + 15, s.y + 20);
-            if (s.y + 20 > player.y && s.y < player.y + player.height && s.x + 15 > player.x && s.x < player.x + player.width) { stars.splice(i, 1); score++; document.getElementById('catchScore').textContent = score; }
-            if (s.y > canvas.height) stars.splice(i, 1);
+    // 从 profile 对象直接取所有字段（兼容简化格式）
+    if (table && p) {
+        table.querySelectorAll('tr').forEach(function(row) {
+            var th = row.querySelector('th');
+            var td = row.querySelector('td');
+            if (!th || !td) return;
+            var key = th.textContent.trim();
+            if (p[key]) td.textContent = p[key];
         });
-        frameCount++;
-        if (currentGame === 'catch') requestAnimationFrame(gameLoop);
     }
-    gameLoop();
 }
 
-function initQuizGame(container) {
-    currentGame = 'quiz';
-    const questions = [
-        { q: '乃萝的B站UID是？', a: ['86471108', '12345678', '99999999'], correct: 0 },
-        { q: '乃萝的Twitter ID是？', a: ['@nora_vtuber', '@Ayatsuki_Nora', '@nora_draw'], correct: 1 },
-        { q: '乃萝的职业是？', a: ['纯画师', '纯主播', '兼职画师和主播'], correct: 2 },
-        { q: '乃萝的Pixiv ID是？', a: ['36966416', '12345678', '99999999'], correct: 0 },
-    ];
-    let qIdx = 0, score = 0;
-    container.innerHTML = `
-        <div class="game-header"><h3>QUIZ</h3>
-            <div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="quizScore">0</span> | <span id="qNum">1</span>/${questions.length}</div>
-            <button class="close-game" onclick="closeGame()">×</button></div>
-        <div id="quizContent" style="text-align:center;padding:20px;max-width:500px;margin:0 auto;"></div>`;
-    showQ();
-    function showQ() {
-        const el = document.getElementById('quizContent');
-        if (qIdx >= questions.length) {
-            el.innerHTML = `<h3 style="margin-bottom:20px;color:var(--accent)">完成！</h3><p style="font-size:1.3rem;margin-bottom:30px">${score}/${questions.length}</p><button onclick="initQuizGame(document.getElementById('gameContainer'))" style="padding:12px 30px;background:transparent;border:1px solid var(--accent);border-radius:50px;color:var(--accent);cursor:pointer;font-family:var(--font-en)">RETRY</button>`;
+// ===== 首页模式切换（从设置页调用后，更新本地缓存不触发网络请求的场景） =====
+function applyHomeMode(mode) {
+    var artMode = document.querySelector('.hero-mode-art');
+    var emojiMode = document.querySelector('.hero-mode-emoji');
+    if (artMode && emojiMode) {
+        if (mode === 'emoji') {
+            artMode.style.display = 'none';
+            emojiMode.style.display = 'block';
+            buildEmojiWaterfall();
+        } else {
+            artMode.style.display = 'block';
+            emojiMode.style.display = 'none';
+        }
+    }
+    setCfg('homeMode', mode);
+}
+
+function setCfg(key, val) { remoteConfig[key] = val; }
+
+// ===== GAMES =====
+// ===== 记忆翻牌游戏 =====
+function initMemoryGame(container) {
+    container.style.display = 'block';
+    var emojis = ['🌙','⭐','🎨','🐱','🌸','💜','🎀','✨'];
+    var cards = emojis.concat(emojis);
+    cards = shuffleArray(cards);
+
+    var flipped = [];
+    var matched = [];
+    var lockBoard = false;
+
+    container.innerHTML = '<div class="game-header"><h3>MEMORY</h3>' +
+        '<div style="color:var(--text-dim);font-size:0.85rem">找到所有配对!</div>' +
+        '<button class="close-game" onclick="closeGame()">×</button></div>' +
+        '<div class="memory-grid" id="memoryGrid"></div>';
+
+    var grid = document.getElementById('memoryGrid');
+    cards.forEach(function(emoji, idx) {
+        var card = document.createElement('div');
+        card.className = 'memory-card';
+        card.dataset.index = idx;
+        card.dataset.emoji = emoji;
+        card.innerHTML = '<div class="card-inner"><div class="card-front">?</div><div class="card-back">' + emoji + '</div></div>';
+        card.addEventListener('click', function() {
+            if (lockBoard) return;
+            if (flipped.includes(idx) || matched.includes(idx)) return;
+            if (flipped.length === 2) return;
+
+            card.classList.add('flipped');
+            flipped.push(idx);
+
+            if (flipped.length === 2) {
+                lockBoard = true;
+                var idx1 = flipped[0], idx2 = flipped[1];
+                if (cards[idx1] === cards[idx2]) {
+                    matched.push(idx1, idx2);
+                    flipped = [];
+                    lockBoard = false;
+                    if (matched.length === cards.length) {
+                        setTimeout(function() {
+                            container.querySelector('h3').textContent = '🎉 CLEAR!';
+                        }, 500);
+                    }
+                } else {
+                    setTimeout(function() {
+                        document.querySelectorAll('.memory-card')[idx1].classList.remove('flipped');
+                        document.querySelectorAll('.memory-card')[idx2].classList.remove('flipped');
+                        flipped = [];
+                        lockBoard = false;
+                    }, 800);
+                }
+            }
+        });
+        grid.appendChild(card);
+    });
+}
+
+// ===== 接萝卜游戏 =====
+function initCatchGame(container) {
+    container.style.display = 'block';
+    var score = 0;
+    var misses = 0;
+    var maxMiss = 5;
+
+    container.innerHTML = '<div class="game-header"><h3>CATCH RADISH!</h3>' +
+        '<div style="color:var(--text-dim);font-size:0.85rem">Score: <span id="catchScore">0</span> | Miss: <span id="catchMiss">0</span>/' + maxMiss + '</div>' +
+        '<button class="close-game" onclick="closeGame()">×</button></div>' +
+        '<div id="catchArea" style="position:relative;height:400px;background:var(--card-bg);border-radius:12px;overflow:hidden;cursor:pointer;"></div>';
+
+    var area = document.getElementById('catchArea');
+
+    function spawnRadish() {
+        if (misses >= maxMiss) {
+            area.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">' +
+                '<h3 style="color:var(--accent);margin-bottom:10px">GAME OVER</h3>' +
+                '<p style="font-size:1.3rem;margin-bottom:20px">Score: ' + score + '</p>' +
+                '<button onclick="initCatchGame(document.getElementById(\'gameContainer\'))" style="padding:10px 24px;background:transparent;border:1px solid var(--accent);border-radius:50px;color:var(--accent);cursor:pointer;">RETRY</button></div>';
             return;
         }
-        document.getElementById('qNum').textContent = qIdx + 1;
-        const q = questions[qIdx];
-        el.innerHTML = `<h3 style="margin-bottom:25px;font-size:1.1rem;font-weight:400">${q.q}</h3>${q.a.map((a, i) => `<button onclick="checkAns(${i})" style="display:block;width:100%;max-width:300px;margin:10px auto;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;cursor:pointer;">${a}</button>`).join('')}`;
+        var radish = document.createElement('div');
+        radish.style.cssText = 'position:absolute;font-size:2rem;cursor:pointer;transition:transform 0.1s;z-index:1;';
+        radish.style.left = Math.random() * 85 + '%';
+        radish.style.top = Math.random() * 80 + '%';
+        radish.textContent = ['🥕','🥕','🥕','🍀','💣'][Math.floor(Math.random() * 5)];
+
+        var isBomb = radish.textContent === '💣';
+        var isClover = radish.textContent === '🍀';
+
+        radish.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (isBomb) {
+                score = Math.max(0, score - 3);
+            } else if (isClover) {
+                score += 5;
+            } else {
+                score++;
+            }
+            document.getElementById('catchScore').textContent = score;
+            radish.remove();
+        });
+
+        area.appendChild(radish);
+
+        setTimeout(function() {
+            if (radish.parentNode) {
+                radish.remove();
+                if (!isBomb) {
+                    misses++;
+                    document.getElementById('catchMiss').textContent = misses;
+                }
+                if (misses >= maxMiss) spawnRadish();
+            }
+        }, 2000);
+
+        if (misses < maxMiss) {
+            setTimeout(spawnRadish, 800 + Math.random() * 600);
+        }
     }
-    window.checkAns = function(i) {
-        if (i === questions[qIdx].correct) { score++; document.getElementById('quizScore').textContent = score; }
-        qIdx++; showQ();
-    };
+
+    area.addEventListener('click', function() { /* miss click - no penalty */ });
+    spawnRadish();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🌙 绫月乃萝 Fan Site loaded');
-    
-    // 应用设置页的画廊配置
-    const settings = JSON.parse(localStorage.getItem('nora_settings') || '{}');
-    if (settings.gallery) {
-        const grid = document.getElementById('masonryGrid');
-        if (grid && settings.gallery.cols) {
-            grid.style.columns = settings.gallery.cols;
-        }
-        if (grid && settings.gallery.gap) {
-            grid.style.columnGap = settings.gallery.gap + 'px';
-        }
+// ===== 问题游戏 =====
+var questions = [
+    { q: '绫月乃萝的生日是?', a: ['4月21日','4月15日','5月1日','3月21日'], correct: 0 },
+    { q: '乃萝在B站的UID是?', a: ['86471108','12345678','87654321','86471109'], correct: 0 },
+    { q: '乃萝的Twitter ID是?', a: ['@Ayatsuki_Nora','@Nora_ayatsuki','@Tsukimi_Nora','@Nora_cat'], correct: 0 },
+    { q: '乃萝是哪种虚拟主播?', a: ['猫猫画师','狗狗画师','兔兔画师','熊熊画师'], correct: 0 },
+];
+
+var qIdx = 0;
+var quizScore = 0;
+
+function initQuizGame(container) {
+    container.style.display = 'block';
+    qIdx = 0;
+    quizScore = 0;
+    container.innerHTML = '<div class="game-header"><h3>QUIZ</h3>' +
+        '<div style="color:var(--text-dim);font-family:var(--font-en);font-size:0.85rem">Score: <span id="quizScore">0</span> | <span id="qNum">1</span>/' + questions.length + '</div>' +
+        '<button class="close-game" onclick="closeGame()">×</button></div>' +
+        '<div id="quizContent" style="text-align:center;padding:20px;max-width:500px;margin:0 auto;"></div>';
+    showQ();
+}
+
+function showQ() {
+    var el = document.getElementById('quizContent');
+    if (qIdx >= questions.length) {
+        el.innerHTML = '<h3 style="margin-bottom:20px;color:var(--accent)">完成!</h3>' +
+            '<p style="font-size:1.3rem;margin-bottom:30px">' + quizScore + '/' + questions.length + '</p>' +
+            '<button onclick="initQuizGame(document.getElementById(\'gameContainer\'))" style="padding:12px 30px;background:transparent;border:1px solid var(--accent);border-radius:50px;color:var(--accent);cursor:pointer;font-family:var(--font-en)">RETRY</button>';
+        return;
     }
+    document.getElementById('qNum').textContent = qIdx + 1;
+    var q = questions[qIdx];
+    el.innerHTML = '<h3 style="margin-bottom:25px;font-size:1.1rem;font-weight:400">' + q.q + '</h3>' +
+        q.a.map(function(a, i) {
+            return '<button onclick="checkAns(' + i + ')" style="display:block;width:100%;max-width:300px;margin:10px auto;padding:12px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.95rem;cursor:pointer;">' + a + '</button>';
+        }).join('');
+}
+
+window.checkAns = function(i) {
+    if (i === questions[qIdx].correct) { quizScore++; document.getElementById('quizScore').textContent = quizScore; }
+    qIdx++; showQ();
+};
+
+window.closeGame = function() {
+    var gc = document.getElementById('gameContainer');
+    if (gc) { gc.style.display = 'none'; gc.innerHTML = ''; }
+};
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌙 绫月乃萝 Fan Site loaded (v0.5)');
+    loadRemoteConfig();
 });
