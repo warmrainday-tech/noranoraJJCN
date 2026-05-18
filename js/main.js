@@ -1,7 +1,7 @@
 // 绫月乃萝 Fan Site — main.js (v0.5 — 远程配置同步)
 
 // ===== 远程配置 API =====
-var WORKER_URL = 'https://nora-cdn.YOUR_SUBDOMAIN.workers.dev';
+var WORKER_URL = 'https://nora-cdn.warmrainday.workers.dev';
 var remoteConfig = {};
 
 async function loadRemoteConfig() {

@@ -2,7 +2,7 @@
  * nora-cdn API 客户端
  * 在 Cloudflare Workers 部署后替换 WORKER_URL 即可
  */
-const WORKER_URL = 'https://nora-cdn.YOUR_SUBDOMAIN.workers.dev';
+const WORKER_URL = 'https://nora-cdn.warmrainday.workers.dev';
 
 const API = {
   /**
