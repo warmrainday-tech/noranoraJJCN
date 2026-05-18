@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 — 绫月乃萝 Fan Site</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        [data-theme="dark"] {
+            --bg: #0a0a0f; --bg2: #12121a; --text: #e8e8f0; --text-dim: #888899;
+            --accent: #c8a2e8; --accent2: #ff7eb3;
+            --border: rgba(255,255,255,0.08); --card-bg: rgba(255,255,255,0.03);
+        }
+        [data-theme="light"] {
+            --bg: #f8f6f3; --bg2: #eeecea; --text: #2a2a35; --text-dim: #888890;
+            --accent: #a67dd6; --accent2: #e8608a;
+            --border: rgba(0,0,0,0.1); --card-bg: rgba(0,0,0,0.03);
+        }
+        [data-theme="lavender"] {
+            --bg: #e8e0f0; --bg2: #ddd4ec; --text: #2d1f4e; --text-dim: #7a6b9a;
+            --accent: #7b5ea7; --accent2: #b06cc7;
+            --border: rgba(123,94,167,0.15); --card-bg: rgba(123,94,167,0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.4s, color 0.4s; }
+        a { color: var(--accent); text-decoration: none; }
+        img { display: block; max-width: 100%; }
+
+        .settings-page { max-width: 800px; margin: 0 auto; padding: 40px 20px 80px; }
+
+        .settings-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-bottom: 30px; border-bottom: 1px solid var(--border); margin-bottom: 40px;
+        }
+        .settings-header h1 {
+            font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 700;
+            letter-spacing: 0.15em;
+        }
+        .back-link {
+            font-family: 'Montserrat', sans-serif; font-size: 0.8rem; letter-spacing: 0.1em;
+            color: var(--text-dim); display: flex; align-items: center; gap: 6px;
+            transition: color 0.3s;
+        }
+        .back-link:hover { color: var(--accent); }
+
+        .section { margin-bottom: 50px; }
+        .section h2 {
+            font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 600;
+            letter-spacing: 0.2em; color: var(--text-dim); margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        /* Mode Switch */
+        .mode-switch {
+            display: flex; gap: 20px;
+        }
+        .mode-card {
+            flex: 1; padding: 25px; background: var(--card-bg); border: 2px solid var(--border);
+            border-radius: 12px; cursor: pointer; transition: all 0.3s; text-align: center;
+        }
+        .mode-card:hover { border-color: var(--accent); }
+        .mode-card.active { border-color: var(--accent); background: rgba(200,162,232,0.05); }
+        .mode-card .preview {
+            width: 100%; height: 160px; border-radius: 8px; margin-bottom: 15px;
+            overflow: hidden; background: var(--bg2);
+        }
+        .mode-card .preview img { width: 100%; height: 100%; object-fit: cover; }
+        .mode-card h3 {
+            font-family: 'Montserrat', sans-serif; font-size: 0.9rem; font-weight: 600;
+            letter-spacing: 0.1em; margin-bottom: 5px;
+        }
+        .mode-card p { font-size: 0.8rem; color: var(--text-dim); }
+
+        /* Theme swatch (色卡) */
+        .theme-swatch { padding: 0; overflow: hidden; }
+        .theme-swatch .swatch { width: 100%; height: 80px; border-radius: 10px 10px 0 0; }
+        .theme-swatch span {
+            display: block; text-align: center; padding: 10px 0;
+            font-family: 'Montserrat', sans-serif; font-size: 0.8rem;
+            font-weight: 600; letter-spacing: 0.1em; color: var(--text-dim);
+        }
+        .theme-swatch.active span { color: var(--accent); }
+
+        /* Config Table */
+        .config-table { width: 100%; border-collapse: collapse; }
+        .config-table th, .config-table td {
+            padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .config-table th { color: var(--text-dim); font-weight: 400; width: 160px; white-space: nowrap; }
+
+        input[type="text"], input[type="url"], input[type="number"], select {
+            width: 100%; padding: 10px 14px; background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-size: 0.9rem; outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+
+        .btn-row { display: flex; gap: 12px; margin-top: 30px; }
+        .btn {
+            padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;
+            font-family: inherit; transition: all 0.3s;
+            border: 1px solid var(--border); background: var(--bg2); color: var(--text);
+        }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-sm {
+            padding: 4px 8px; font-size: 0.7rem; border: none; background: transparent;
+            color: var(--text-dim);
+        }
+        .btn-sm:hover { color: var(--accent); }
+        .btn-sm.btn-danger { color: #e06070; }
+        .btn-sm.btn-danger:hover { color: #ff4040; }
+        .btn-primary { display:none; }
+
+        /* Image Grid (for hero bg selection) */
+        .image-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px; margin-top: 15px;
+        }
+        .image-grid .img-option {
+            aspect-ratio: 1; border-radius: 8px; overflow: hidden; cursor: pointer;
+            border: 2px solid transparent; transition: all 0.3s; position: relative;
+        }
+        .image-grid .img-option:hover { border-color: var(--text-dim); }
+        .image-grid .img-option.selected { border-color: var(--accent); }
+        .image-grid .img-option img { width: 100%; height: 100%; object-fit: cover; }
+        .image-grid .img-option.selected::after {
+            content: '✓'; position: absolute; top: 5px; right: 5px;
+            background: var(--accent); color: white; width: 22px; height: 22px;
+            border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Gallery image row */
+        .gallery-img-row { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border); }
+        .gallery-img-row .thumb { width:50px;height:50px;border-radius:4px;overflow:hidden;flex-shrink:0;background:var(--bg2); }
+        .gallery-img-row .thumb img { width:100%;height:100%;object-fit:cover; }
+        .gallery-img-row input[type="text"] { flex:1; }
+        .gallery-img-row .tall-badge { font-size:0.65rem;padding:2px 6px;border-radius:10px;background:var(--accent);color:white;margin-right:4px; }
+        .gallery-img-row .btn-sm { font-size:0.7rem;padding:4px 10px; }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: var(--accent); color: white; padding: 12px 30px; border-radius: 50px;
+            font-size: 0.85rem; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+            z-index: 1000; pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="settings-page">
+        <div class="settings-header">
+            <h1>⚙ SETTINGS</h1>
+            <a href="index.html" class="back-link">← BACK</a>
+        </div>
+
+        <!-- 主题 -->
+        <div class="section">
+            <h2>THEME</h2>
+            <div class="mode-switch">
+                <div class="mode-card theme-swatch" data-theme="dark" onclick="selectTheme('dark')">
+                    <div class="swatch" style="background:#0a0a0f"></div>
+                    <span>DARK</span>
+                </div>
+                <div class="mode-card theme-swatch" data-theme="light" onclick="selectTheme('light')">
+                    <div class="swatch" style="background:#f8f6f3"></div>
+                    <span>LIGHT</span>
+                </div>
+                <div class="mode-card theme-swatch" data-theme="lavender" onclick="selectTheme('lavender')">
+                    <div class="swatch" style="background:#e8e0f0"></div>
+                    <span>LAVENDER</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 首页模式 -->
+        <div class="section">
+            <h2>HOME MODE</h2>
+            <div class="mode-switch">
+                <div class="mode-card" data-mode="art" onclick="selectMode('art')">
+                    <div class="preview"><img src="images/pixiv_hd_1.jpg" alt="Art Mode"></div>
+                    <h3>ART</h3>
+                    <p>插画全屏Hero背景</p>
+                </div>
+                <div class="mode-card" data-mode="emoji" onclick="selectMode('emoji')">
+                    <div class="preview" style="display:flex;flex-wrap:wrap;gap:2px;padding:4px;background:#111;">
+                        <img src="noraemoji/07A21E208726EF4EB062DF73BAD53FB3.jpg" style="width:30%;height:auto;border-radius:3px;" alt="">
+                        <img src="noraemoji/15049341992A4951DA6F94B981705031.jpg" style="width:30%;height:auto;border-radius:3px;" alt="">
+                        <img src="noraemoji/30369B89C7858820E17FF1680FC01287.jpg" style="width:30%;height:auto;border-radius:3px;" alt="">
+                        <img src="noraemoji/4A36F3A93BE3277227A7CD8E64FF18AB.jpg" style="width:30%;height:auto;border-radius:3px;" alt="">
+                        <img src="noraemoji/6163803096E016D09942A68BF511B26D.jpg" style="width:30%;height:auto;border-radius:3px;" alt="">
+                        <img src="noraemoji/907F06D73D75F0177E52D97FC37A7571.jpg" style="width:30%;height:auto;border-radius:3px;" alt="">
+                    </div>
+                    <h3>EMOJI</h3>
+                    <p>奶萝emoji瀑布滚动</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emoji瀑布设置 -->
+        <div class="section" id="emojiSection">
+            <h2>EMOJI WATERFALL</h2>
+            <table class="config-table">
+                <tr><th>列数</th><td><input type="number" id="emojiCols" value="12" min="4" max="20" onchange="autoSaveSettings()"></td></tr>
+                <tr><th>滚动速度</th><td><input type="number" id="emojiSpeed" value="30" min="10" max="60" onchange="autoSaveSettings()"></td></tr>
+                <tr><th>透明度</th><td><input type="number" id="emojiOpacity" value="0.6" min="0.1" max="1" step="0.1" onchange="autoSaveSettings()"></td></tr>
+                <tr><th>滚动方向</th><td>
+                    <select id="emojiDirection" onchange="autoSaveSettings()">
+                        <option value="vertical">垂直</option>
+                        <option value="diagonal-left">左斜</option>
+                        <option value="diagonal-right">右斜</option>
+                    </select>
+                </td></tr>
+            </table>
+        </div>
+
+        <!-- Hero背景图 -->
+        <div class="section" id="heroImageSection">
+            <h2>HERO IMAGE</h2>
+            <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:10px">选择Art模式的首页背景图</p>
+            <div class="image-grid" id="heroImageGrid"></div>
+        </div>
+
+        <!-- 社交链接 -->
+        <div class="section">
+            <h2>SOCIAL LINKS</h2>
+            <table class="config-table">
+                <tr><th>Bilibili</th><td><input type="url" id="linkBilibili" value="https://space.bilibili.com/86471108" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>Twitter</th><td><input type="url" id="linkTwitter" value="https://twitter.com/Ayatsuki_Nora" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>Pixiv</th><td><input type="url" id="linkPixiv" value="https://www.pixiv.net/users/36966416" oninput="autoSaveSettings()"></td></tr>
+            </table>
+        </div>
+
+        <!-- 个人资料 -->
+        <div class="section">
+            <h2>PROFILE</h2>
+            <table class="config-table">
+                <tr><th>名前</th><td><input type="text" id="profileName" value="綾月乃蘿" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>EN NAME</th><td><input type="text" id="profileNameEn" value="Ayatsuki Nora" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>TAGLINE</th><td><input type="text" id="profileTagline" value="イラストレーター × 配信者" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>誕生日</th><td><input type="text" id="profileBday" value="4月21日" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>種族</th><td><input type="text" id="profileRace" value="猫猫" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>特性</th><td><input type="text" id="profileTrait" value="豆豆眉" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>言語</th><td><input type="text" id="profileLang" value="中文 / 日本語" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>活動</th><td><input type="text" id="profileActivity" value="イラスト制作 × ライブ配信" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>简介</th><td><input type="text" id="profileDesc" value="猫猫画師兼職虛擬主播，你的賽博損友！" oninput="autoSaveSettings()"></td></tr>
+                <tr><th>头像</th><td>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <input type="text" id="profileAvatar" value="images/avatar.jpg" oninput="autoSaveSettings()" style="flex:1">
+                        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="uploadAvatarImage(this)">
+                        <button class="btn" onclick="document.getElementById('avatarFileInput').click()">📁 上传</button>
+                    </div>
+                </td></tr>
+            </table>
+        </div>
+
+        <!-- 画廊设置 -->
+        <div class="section">
+            <h2>GALLERY</h2>
+            <table class="config-table">
+                <tr><th>列数</th><td>
+                    <select id="galleryCols" onchange="autoSaveSettings()">
+                        <option value="2">2列</option>
+                        <option value="3" selected>3列</option>
+                        <option value="4">4列</option>
+                    </select>
+                </td></tr>
+                <tr><th>间距</th><td><input type="number" id="galleryGap" value="16" min="0" max="40" onchange="autoSaveSettings()" style="width:80px"> px</td></tr>
+            </table>
+            <div style="margin-top:20px">
+                <h3 style="font-size:0.8rem;color:var(--text-dim);margin-bottom:10px">图片列表</h3>
+                <div style="display:flex;gap:8px;margin-bottom:10px">
+                    <input type="text" id="newGalleryImg" placeholder="images/xxx.jpg" style="flex:1">
+                    <select id="newGalleryTall" style="width:80px;flex:none"><option value="0">普通</option><option value="1">高(tall)</option></select>
+                    <button class="btn" onclick="addGalleryImage()">+ 添加</button>
+                    <input type="file" id="galleryFileInput" accept="image/*" style="display:none" onchange="uploadGalleryImage(this)">
+                    <button class="btn" onclick="document.getElementById('galleryFileInput').click()">📁 上传</button>
+                </div>
+                <div id="galleryImageList"></div>
+            </div>
+        </div>
+
+        <!-- VIDEO 管理 -->
+        <div class="section">
+            <h2>VIDEO</h2>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+                <input type="text" id="newMovieImg" placeholder="图片URL" style="flex:1">
+                <input type="text" id="newMovieLink" placeholder="跳转链接" style="flex:1">
+                <input type="file" id="movieFileInput" accept="image/*" style="display:none" onchange="uploadMovieImage(this)">
+                <button class="btn" onclick="document.getElementById('movieFileInput').click()">📁 上传</button>
+                <button class="btn" onclick="addMovieItem()">+ 添加</button>
+            </div>
+            <div id="movieItemList"></div>
+        </div>
+
+        <!-- GOODS 管理 -->
+        <div class="section">
+            <h2>GOODS</h2>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+                <input type="text" id="newGoodsImg" placeholder="图片URL" style="flex:1">
+                <input type="text" id="newGoodsLink" placeholder="跳转链接" style="flex:1">
+                <input type="file" id="goodsFileInput" accept="image/*" style="display:none" onchange="uploadGoodsImage(this)">
+                <button class="btn" onclick="document.getElementById('goodsFileInput').click()">📁 上传</button>
+                <button class="btn" onclick="addGoodsItem()">+ 添加</button>
+            </div>
+            <div id="goodsItemList"></div>
+        </div>
+
+        </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===== 远程配置 API =====
+        const WORKER_URL = 'https://nora-cdn.warmrainday.workers.dev';
+
+        /** 将本地路径转为 Worker /image 代理 URL */
+        function cdn(path) {
+            if (!path) return '';
+            if (path.startsWith('http')) return path;
+            return WORKER_URL + '/image?path=' + encodeURIComponent(path);
+        }
+
+        let remoteConfig = {};
+
+        async function loadConfig() {
+            try {
+                const r = await fetch(WORKER_URL + '/config');
+                if (r.ok) remoteConfig = await r.json();
+            } catch (e) { console.warn('Failed to load config:', e); }
+            applyAll();
+        }
+
+        async function saveConfig() {
+            try {
+                const r = await fetch(WORKER_URL + '/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(remoteConfig),
+                });
+                if (!r.ok) throw new Error('save failed');
+                showToast('设置已保存 ✓');
+            } catch (e) { showToast('保存失败: ' + e.message); }
+        }
+
+        function getCfg(key, def) {
+            return remoteConfig[key] !== undefined ? remoteConfig[key] : def;
+        }
+        function setCfg(key, val) { remoteConfig[key] = val; }
+
+        // ===== Toast =====
+        let toastTimer;
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.style.opacity = '1';
+            el.style.pointerEvents = 'auto';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }, 2000);
+        }
+
+        // ===== Theme =====
+        function selectTheme(theme) {
+            document.querySelectorAll('.mode-card[data-theme]').forEach(function(el) { el.classList.remove('active'); });
+            var card = document.querySelector('.mode-card[data-theme="' + theme + '"]');
+            if (card) card.classList.add('active');
+            document.documentElement.setAttribute('data-theme', theme);
+            setCfg('theme', theme);
+            autoSaveSettings();
+        }
+
+        // ===== Home Mode =====
+        function selectMode(mode) {
+            document.querySelectorAll('.mode-card[data-mode]').forEach(function(el) { el.classList.remove('active'); });
+            var card = document.querySelector('.mode-card[data-mode="' + mode + '"]');
+            if (card) card.classList.add('active');
+            setCfg('homeMode', mode);
+            var hero = document.getElementById('heroImageSection');
+            var emoji = document.getElementById('emojiSection');
+            if (hero) hero.style.display = mode === 'art' ? 'block' : 'none';
+            if (emoji) emoji.style.display = mode === 'emoji' ? 'block' : 'none';
+            autoSaveSettings();
+        }
+
+        // ===== Hero Image =====
+        function buildHeroImageGrid() {
+            var grid = document.getElementById('heroImageGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            var saved = getCfg('heroImage', 'images/pixiv_hd_1.jpg');
+            var gallery = getCfg('galleryImages', []);
+            gallery.forEach(function(img) {
+                var div = document.createElement('div');
+                div.className = 'img-option' + (img.src === saved ? ' selected' : '');
+                div.onclick = function() { selectHeroImage(img.src); };
+                div.innerHTML = '<img src="' + cdn(img.src) + '" alt="">';
+                grid.appendChild(div);
+            });
+        }
+
+        function selectHeroImage(src) {
+            setCfg('heroImage', src);
+            document.querySelectorAll('.image-grid .img-option').forEach(function(el) {
+                el.classList.toggle('selected', el.querySelector('img').src === src);
+            });
+            autoSaveSettings();
+        }
+
+        // ===== Auto save =====
+        var autoSaveTimeout;
+        function autoSaveSettings() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(collectAndSave, 500);
+        }
+
+        function collectAndSave() {
+            var el = function(id) { return document.getElementById(id); };
+
+            setCfg('homeMode', getCfg('homeMode', 'art'));
+            setCfg('heroImage', getCfg('heroImage', 'images/pixiv_hd_1.jpg'));
+
+            if (el('linkBilibili')) setCfg('linkBilibili', el('linkBilibili').value);
+            if (el('linkTwitter')) setCfg('linkTwitter', el('linkTwitter').value);
+            if (el('linkPixiv')) setCfg('linkPixiv', el('linkPixiv').value);
+
+            if (el('profileName')) setCfg('profileName', el('profileName').value);
+            if (el('profileNameEn')) setCfg('profileNameEn', el('profileNameEn').value);
+            if (el('profileTagline')) setCfg('profileTagline', el('profileTagline').value);
+            if (el('profileBday')) setCfg('profileBday', el('profileBday').value);
+            if (el('profileRace')) setCfg('profileRace', el('profileRace').value);
+            if (el('profileTrait')) setCfg('profileTrait', el('profileTrait').value);
+            if (el('profileLang')) setCfg('profileLang', el('profileLang').value);
+            if (el('profileActivity')) setCfg('profileActivity', el('profileActivity').value);
+            if (el('profileDesc')) setCfg('profileDesc', el('profileDesc').value);
+            if (el('profileAvatar')) setCfg('profileAvatar', el('profileAvatar').value);
+
+            if (el('galleryCols')) setCfg('galleryCols', parseInt(el('galleryCols').value) || 3);
+            if (el('galleryGap')) setCfg('galleryGap', parseInt(el('galleryGap').value) || 10);
+
+            if (el('emojiCols')) setCfg('emojiCols', parseInt(el('emojiCols').value) || 12);
+            if (el('emojiSpeed')) setCfg('emojiSpeed', parseInt(el('emojiSpeed').value) || 30);
+            if (el('emojiOpacity')) setCfg('emojiOpacity', parseFloat(el('emojiOpacity').value) || 0.6);
+            if (el('emojiDirection')) setCfg('emojiDirection', el('emojiDirection').value);
+
+            saveConfig();
+        }
+
+        function applyAll() {
+            var theme = getCfg('theme', 'dark');
+            document.documentElement.setAttribute('data-theme', theme);
+            var themeCard = document.querySelector('.mode-card[data-theme="' + theme + '"]');
+            if (themeCard) themeCard.classList.add('active');
+
+            var mode = getCfg('homeMode', 'art');
+            var modeCard = document.querySelector('.mode-card[data-mode="' + mode + '"]');
+            if (modeCard) modeCard.classList.add('active');
+            var hero = document.getElementById('heroImageSection');
+            var emoji = document.getElementById('emojiSection');
+            if (hero) hero.style.display = mode === 'art' ? 'block' : 'none';
+            if (emoji) emoji.style.display = mode === 'emoji' ? 'block' : 'none';
+
+            var setVal = function(id, def) {
+                var e = document.getElementById(id);
+                if (e) e.value = getCfg(id.replace('link','link').replace('profile','profile').replace('gallery','gallery').replace('emoji','emoji'), def);
+            };
+
+            if (document.getElementById('linkBilibili')) document.getElementById('linkBilibili').value = getCfg('linkBilibili', '');
+            if (document.getElementById('linkTwitter')) document.getElementById('linkTwitter').value = getCfg('linkTwitter', '');
+            if (document.getElementById('linkPixiv')) document.getElementById('linkPixiv').value = getCfg('linkPixiv', '');
+
+            if (document.getElementById('profileName')) document.getElementById('profileName').value = getCfg('profileName', '');
+            if (document.getElementById('profileNameEn')) document.getElementById('profileNameEn').value = getCfg('profileNameEn', '');
+            if (document.getElementById('profileTagline')) document.getElementById('profileTagline').value = getCfg('profileTagline', '');
+            if (document.getElementById('profileBday')) document.getElementById('profileBday').value = getCfg('profileBday', '');
+            if (document.getElementById('profileRace')) document.getElementById('profileRace').value = getCfg('profileRace', '');
+            if (document.getElementById('profileTrait')) document.getElementById('profileTrait').value = getCfg('profileTrait', '');
+            if (document.getElementById('profileLang')) document.getElementById('profileLang').value = getCfg('profileLang', '');
+            if (document.getElementById('profileActivity')) document.getElementById('profileActivity').value = getCfg('profileActivity', '');
+            if (document.getElementById('profileDesc')) document.getElementById('profileDesc').value = getCfg('profileDesc', '');
+            if (document.getElementById('profileAvatar')) document.getElementById('profileAvatar').value = getCfg('profileAvatar', '');
+
+            if (document.getElementById('galleryCols')) document.getElementById('galleryCols').value = getCfg('galleryCols', 3);
+            if (document.getElementById('galleryGap')) document.getElementById('galleryGap').value = getCfg('galleryGap', 10);
+
+            if (document.getElementById('emojiCols')) document.getElementById('emojiCols').value = getCfg('emojiCols', 12);
+            if (document.getElementById('emojiSpeed')) document.getElementById('emojiSpeed').value = getCfg('emojiSpeed', 30);
+            if (document.getElementById('emojiOpacity')) document.getElementById('emojiOpacity').value = getCfg('emojiOpacity', 0.6);
+            if (document.getElementById('emojiDirection')) document.getElementById('emojiDirection').value = getCfg('emojiDirection', 'vertical');
+
+            buildHeroImageGrid();
+            renderGalleryList();
+            renderVideoList();
+            renderGoodsList();
+        }
+
+        // ===== Upload helper =====
+        async function apiUpload(file) {
+            var form = new FormData();
+            form.append('file', file);
+            var r = await fetch(WORKER_URL + '/upload', { method: 'POST', body: form });
+            if (!r.ok) throw new Error('Upload failed');
+            var data = await r.json();
+            return data;
+        }
+
+        // ===== Gallery management =====
+        function getGalleryImages() { return getCfg('galleryImages', []); }
+        function saveGalleryImages(arr) { setCfg('galleryImages', arr); autoSaveSettings(); }
+        function renderGalleryList() {
+            var list = document.getElementById('galleryImageList');
+            if (!list) return;
+            list.innerHTML = getGalleryImages().map(function(g, i) {
+                return '<div class="gallery-img-row">' +
+                    '<div class="thumb"><img src="' + cdn(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<input type="text" value="' + g.src.replace(/"/g,'&quot;') + '" oninput="updateGallerySrc(' + i + ',this.value)" style="flex:1">' +
+                    '<button class="btn btn-sm btn-danger" onclick="removeGalleryItem(' + i + ')">✕</button>' +
+                    '</div>';
+            }).join('');
+        }
+        function updateGallerySrc(idx, v) { var g = getGalleryImages(); g[idx].src = v.trim(); saveGalleryImages(g); }
+        function removeGalleryItem(idx) { var g = getGalleryImages(); g.splice(idx,1); saveGalleryImages(g); renderGalleryList(); }
+        function addGalleryFromUrl() {
+            var url = document.getElementById('newGalleryUrl').value.trim();
+            if (!url) { showToast('请输入图片URL'); return; }
+            var g = getGalleryImages();
+            g.push({ src: url, title: '' });
+            saveGalleryImages(g);
+            document.getElementById('newGalleryUrl').value = '';
+            renderGalleryList();
+            showToast('已添加');
+        }
+        async function uploadGalleryImage(input) {
+            var file = input.files[0];
+            if (!file) return;
+            try {
+                var data = await apiUpload(file);
+                var g = getGalleryImages();
+                g.push({ src: data.url, title: '' });
+                saveGalleryImages(g);
+                renderGalleryList();
+                showToast('上传成功');
+            } catch(e) { showToast('上传失败: ' + e.message); }
+        }
+
+        // ===== Video management =====
+        function getVideoList() { return getCfg('videoList', []); }
+        function saveVideoList(arr) { setCfg('videoList', arr); autoSaveSettings(); }
+        function renderVideoList() {
+            var list = document.getElementById('videoItemList');
+            if (!list) return;
+            list.innerHTML = getVideoList().map(function(v, i) {
+                return '<div class="gallery-img-row">' +
+                    '<div class="thumb"><img src="' + cdn(v.cover) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<input type="text" value="' + v.cover.replace(/"/g,'&quot;') + '" oninput="updateVideoCover(' + i + ',this.value)" style="flex:1" placeholder="封面图URL">' +
+                    '<input type="text" value="' + (v.link||'').replace(/"/g,'&quot;') + '" oninput="updateVideoLink(' + i + ',this.value)" style="flex:1" placeholder="B站BV号或链接">' +
+                    '<button class="btn btn-sm btn-danger" onclick="removeVideoItem(' + i + ')">✕</button>' +
+                    '</div>';
+            }).join('');
+        }
+        function updateVideoCover(idx, v) { var lst = getVideoList(); lst[idx].cover = v.trim(); saveVideoList(lst); }
+        function updateVideoLink(idx, v) { var lst = getVideoList(); lst[idx].link = v.trim(); saveVideoList(lst); }
+        function removeVideoItem(idx) { var lst = getVideoList(); lst.splice(idx,1); saveVideoList(lst); renderVideoList(); }
+        function addVideoItem() {
+            var cover = document.getElementById('newVideoCover').value.trim();
+            var link = document.getElementById('newVideoLink').value.trim();
+            if (!cover) { showToast('请输入封面图URL'); return; }
+            var lst = getVideoList();
+            lst.push({ cover: cover, link: link || '#' });
+            saveVideoList(lst);
+            document.getElementById('newVideoCover').value = '';
+            document.getElementById('newVideoLink').value = '';
+            renderVideoList();
+            showToast('已添加');
+        }
+        async function uploadVideoCover(input) {
+            var file = input.files[0];
+            if (!file) return;
+            try {
+                var data = await apiUpload(file);
+                document.getElementById('newVideoCover').value = data.url;
+                showToast('上传成功');
+            } catch(e) { showToast('上传失败: ' + e.message); }
+        }
+
+        // ===== GOODS management =====
+        function getGoods() { return getCfg('goods', []); }
+        function saveGoods(arr) { setCfg('goods', arr); autoSaveSettings(); }
+        function renderGoodsList() {
+            var list = document.getElementById('goodsItemList');
+            if (!list) return;
+            list.innerHTML = getGoods().map(function(g, i) {
+                return '<div class="gallery-img-row">' +
+                    '<div class="thumb"><img src="' + cdn(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<input type="text" value="' + g.src.replace(/"/g,'&quot;') + '" oninput="updateGoodsSrc(' + i + ',this.value)" style="flex:1">' +
+                    '<input type="text" value="' + (g.link||'').replace(/"/g,'&quot;') + '" oninput="updateGoodsLink(' + i + ',this.value)" style="flex:1">' +
+                    '<button class="btn btn-sm btn-danger" onclick="removeGoodsItem(' + i + ')">✕</button>' +
+                    '</div>';
+            }).join('');
+        }
+        function updateGoodsSrc(idx, v) { var g = getGoods(); g[idx].src = v.trim(); saveGoods(g); }
+        function updateGoodsLink(idx, v) { var g = getGoods(); g[idx].link = v.trim(); saveGoods(g); }
+        function removeGoodsItem(idx) { var g = getGoods(); g.splice(idx,1); saveGoods(g); renderGoodsList(); }
+        function addGoodsItem() {
+            var src = document.getElementById('newGoodsImg').value.trim();
+            var link = document.getElementById('newGoodsLink').value.trim();
+            if (!src) { showToast('请输入图片URL'); return; }
+            var g = getGoods();
+            g.push({ src: src, link: link || '#' });
+            saveGoods(g);
+            document.getElementById('newGoodsImg').value = '';
+            document.getElementById('newGoodsLink').value = '';
+            renderGoodsList();
+            showToast('已添加');
+        }
+        async function uploadGoodsImage(input) {
+            var file = input.files[0];
+            if (!file) return;
+            try {
+                var data = await apiUpload(file);
+                document.getElementById('newGoodsImg').value = data.url;
+                showToast('上传成功');
+            } catch(e) { showToast('上传失败: ' + e.message); }
+        }
+
+        // ===== Profile avatar upload =====
+        async function uploadProfileAvatar(input) {
+            var file = input.files[0];
+            if (!file) return;
+            try {
+                var data = await apiUpload(file);
+                document.getElementById('profileAvatar').value = data.url;
+                autoSaveSettings();
+                showToast('上传成功');
+            } catch(e) { showToast('上传失败: ' + e.message); }
+        }
+
+        // ===== Init =====
+        loadConfig();
+    </script>
+
