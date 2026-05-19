@@ -250,7 +250,7 @@
                 <tr><th>头像</th><td>
                     <div style="display:flex;gap:8px;align-items:center">
                         <input type="text" id="profileAvatar" value="images/avatar.jpg" oninput="autoSaveSettings()" style="flex:1">
-                        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="uploadAvatarImage(this)">
+                        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="uploadProfileAvatar(this)">
                         <button class="btn" onclick="document.getElementById('avatarFileInput').click()">📁 上传</button>
                     </div>
                 </td></tr>
@@ -289,7 +289,7 @@
             <div style="display:flex;gap:8px;margin-bottom:10px">
                 <input type="text" id="newMovieImg" placeholder="图片URL" style="flex:1">
                 <input type="text" id="newMovieLink" placeholder="跳转链接" style="flex:1">
-                <input type="file" id="movieFileInput" accept="image/*" style="display:none" onchange="uploadMovieImage(this)">
+                <input type="file" id="movieFileInput" accept="image/*" style="display:none" onchange="uploadVideoCover(this)">
                 <button class="btn" onclick="document.getElementById('movieFileInput').click()">📁 上传</button>
                 <button class="btn" onclick="addMovieItem()">+ 添加</button>
             </div>
@@ -314,14 +314,16 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // ===== 远程配置 API =====
-        const WORKER_URL = 'https://nora-cdn.warmrainday.workers.dev';
+        // ===== Config — v0.6 CDN 架构 =====
+        const CDN_BASE = 'https://cdn.jsdelivr.net/gh/warmrainday-tech/nora-cdn@main';
+        const WORKER_URL = 'https://nora-upload.warmrainday.workers.dev';
 
-        function proxy(p) {
+        function imgUrl(p) {
             if (!p) return '';
             if (p.startsWith('http')) return p;
             if (p.startsWith('noraemoji/')) return p;
-            return WORKER_URL + '/image?path=' + encodeURIComponent(p);
+            if (p.startsWith('/')) p = p.slice(1);
+            return CDN_BASE + '/' + p;
         }
 
         let remoteConfig = {};
@@ -336,10 +338,12 @@
 
         async function saveConfig() {
             try {
+                const cleanConfig = Object.assign({}, remoteConfig);
+                delete cleanConfig._cdn;
                 const r = await fetch(WORKER_URL + '/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(remoteConfig),
+                    body: JSON.stringify(cleanConfig),
                 });
                 if (!r.ok) throw new Error('save failed');
                 showToast('设置已保存 ✓');
@@ -350,6 +354,16 @@
             return remoteConfig[key] !== undefined ? remoteConfig[key] : def;
         }
         function setCfg(key, val) { remoteConfig[key] = val; }
+
+        // ===== Upload to CDN repo (via Worker) =====
+        async function uploadToCDN(file) {
+            var form = new FormData();
+            form.append('file', file);
+            var r = await fetch(WORKER_URL + '/upload', { method: 'POST', body: form });
+            if (!r.ok) throw new Error('Upload failed');
+            var data = await r.json();
+            return data.path;
+        }
 
         // ===== Toast =====
         let toastTimer;
@@ -396,7 +410,7 @@
                 var div = document.createElement('div');
                 div.className = 'img-option' + (img.src === saved ? ' selected' : '');
                 div.onclick = function() { selectHeroImage(img.src); };
-                div.innerHTML = '<img src="' + proxy(img.src) + '" alt="">';
+                div.innerHTML = '<img src="' + imgUrl(img.src) + '" alt="">';
                 grid.appendChild(div);
             });
         }
@@ -496,16 +510,6 @@
             renderGoodsList();
         }
 
-        // ===== Upload helper =====
-        async function apiUpload(file) {
-            var form = new FormData();
-            form.append('file', file);
-            var r = await fetch(WORKER_URL + '/upload', { method: 'POST', body: form });
-            if (!r.ok) throw new Error('Upload failed');
-            var data = await r.json();
-            return data;
-        }
-
         // ===== Gallery management =====
         function getGalleryImages() { return getCfg('galleryImages', []); }
         function saveGalleryImages(arr) { setCfg('galleryImages', arr); autoSaveSettings(); }
@@ -514,7 +518,7 @@
             if (!list) return;
             list.innerHTML = getGalleryImages().map(function(g, i) {
                 return '<div class="gallery-img-row">' +
-                    '<div class="thumb"><img src="' + proxy(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<div class="thumb"><img src="' + imgUrl(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
                     '<input type="text" value="' + g.src.replace(/"/g,'&quot;') + '" oninput="updateGallerySrc(' + i + ',this.value)" style="flex:1">' +
                     '<button class="btn btn-sm btn-danger" onclick="removeGalleryItem(' + i + ')">✕</button>' +
                     '</div>';
@@ -536,12 +540,13 @@
             var file = input.files[0];
             if (!file) return;
             try {
-                var data = await apiUpload(file);
+                showToast('上传中...');
+                var path = await uploadToCDN(file);
                 var g = getGalleryImages();
-                g.push({ src: data.url, title: '' });
+                g.push({ src: path, title: '' });
                 saveGalleryImages(g);
                 renderGalleryList();
-                showToast('上传成功');
+                showToast('上传成功 ✓');
             } catch(e) { showToast('上传失败: ' + e.message); }
         }
 
@@ -553,7 +558,7 @@
             if (!list) return;
             list.innerHTML = getVideoList().map(function(v, i) {
                 return '<div class="gallery-img-row">' +
-                    '<div class="thumb"><img src="' + proxy(v.cover) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<div class="thumb"><img src="' + imgUrl(v.cover) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
                     '<input type="text" value="' + v.cover.replace(/"/g,'&quot;') + '" oninput="updateVideoCover(' + i + ',this.value)" style="flex:1" placeholder="封面图URL">' +
                     '<input type="text" value="' + (v.link||'').replace(/"/g,'&quot;') + '" oninput="updateVideoLink(' + i + ',this.value)" style="flex:1" placeholder="B站BV号或链接">' +
                     '<button class="btn btn-sm btn-danger" onclick="removeVideoItem(' + i + ')">✕</button>' +
@@ -579,9 +584,10 @@
             var file = input.files[0];
             if (!file) return;
             try {
-                var data = await apiUpload(file);
-                document.getElementById('newVideoCover').value = data.url;
-                showToast('上传成功');
+                showToast('上传中...');
+                var path = await uploadToCDN(file);
+                document.getElementById('newVideoCover').value = path;
+                showToast('上传成功 ✓');
             } catch(e) { showToast('上传失败: ' + e.message); }
         }
 
@@ -593,7 +599,7 @@
             if (!list) return;
             list.innerHTML = getGoods().map(function(g, i) {
                 return '<div class="gallery-img-row">' +
-                    '<div class="thumb"><img src="' + proxy(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<div class="thumb"><img src="' + imgUrl(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
                     '<input type="text" value="' + g.src.replace(/"/g,'&quot;') + '" oninput="updateGoodsSrc(' + i + ',this.value)" style="flex:1">' +
                     '<input type="text" value="' + (g.link||'').replace(/"/g,'&quot;') + '" oninput="updateGoodsLink(' + i + ',this.value)" style="flex:1">' +
                     '<button class="btn btn-sm btn-danger" onclick="removeGoodsItem(' + i + ')">✕</button>' +
@@ -619,9 +625,10 @@
             var file = input.files[0];
             if (!file) return;
             try {
-                var data = await apiUpload(file);
-                document.getElementById('newGoodsImg').value = data.url;
-                showToast('上传成功');
+                showToast('上传中...');
+                var path = await uploadToCDN(file);
+                document.getElementById('newGoodsImg').value = path;
+                showToast('上传成功 ✓');
             } catch(e) { showToast('上传失败: ' + e.message); }
         }
 
@@ -630,10 +637,11 @@
             var file = input.files[0];
             if (!file) return;
             try {
-                var data = await apiUpload(file);
-                document.getElementById('profileAvatar').value = data.url;
+                showToast('上传中...');
+                var path = await uploadToCDN(file);
+                document.getElementById('profileAvatar').value = path;
                 autoSaveSettings();
-                showToast('上传成功');
+                showToast('上传成功 ✓');
             } catch(e) { showToast('上传失败: ' + e.message); }
         }
 

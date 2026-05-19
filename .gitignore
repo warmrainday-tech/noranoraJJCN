@@ -2,3 +2,6 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Workers 代码含 token，单独部署
+workers/

@@ -1,26 +1,33 @@
-// 绫月乃萝 Fan Site — main.js (v0.5)
+// 绫月乃萝 Fan Site — main.js (v0.6)
 
-// Worker 图片代理
-var WORKER_URL = 'https://nora-cdn.warmrainday.workers.dev';
-var remoteConfig = {};
+// 图床 CDN 前缀
+var CDN_BASE = 'https://cdn.jsdelivr.net/gh/warmrainday-tech/nora-cdn@main';
 
-function proxy(p) {
+// 本地配置缓存
+var localConfig = {};
+
+// 拼接图片 URL：emoji 走本地，其他走 CDN
+function imgUrl(p) {
     if (!p) return '';
     if (p.startsWith('http')) return p;
     if (p.startsWith('noraemoji/')) return p;
-    return WORKER_URL + '/image?path=' + encodeURIComponent(p);
+    if (p.startsWith('/')) p = p.slice(1);
+    return CDN_BASE + '/' + p;
 }
 
-async function loadRemoteConfig() {
+// 加载 config.json
+async function loadConfig() {
     try {
-        var r = await fetch(WORKER_URL + '/config');
-        if (r.ok) remoteConfig = await r.json();
-    } catch (e) {}
+        var r = await fetch('js/config.json');
+        if (r.ok) localConfig = await r.json();
+    } catch (e) {
+        console.warn('Failed to load config.json, using local defaults');
+    }
     applyAllConfig();
 }
 
 function getCfg(key, def) {
-    return remoteConfig[key] !== undefined ? remoteConfig[key] : def;
+    return localConfig[key] !== undefined ? localConfig[key] : def;
 }
 
 (function initTheme() {
@@ -138,65 +145,11 @@ function buildEmojiWaterfall() {
         doubled.forEach(function(file) {
             var img = document.createElement('img');
             img.src = EMOJI_DIR + file;
-            img.alt = '';
-            img.loading = 'lazy';
             img.style.opacity = imgOpacity;
+            img.loading = 'lazy';
             colEl.appendChild(img);
         });
         container.appendChild(colEl);
-    }
-
-    if (direction === 'diagonal-left' || direction === 'diagonal-right') {
-        container.classList.add('diagonal-mode');
-    } else {
-        container.classList.remove('diagonal-mode');
-    }
-}
-
-// ===== 应用所有远程配置 =====
-function applyAllConfig() {
-    // 主题
-    var theme = getCfg('theme', 'dark');
-    document.documentElement.setAttribute('data-theme', theme);
-
-    // Home Mode
-    var mode = getCfg('homeMode', 'art');
-    var artMode = document.querySelector('.hero-mode-art');
-    var emojiMode = document.querySelector('.hero-mode-emoji');
-
-    if (artMode && emojiMode) {
-        if (mode === 'emoji') {
-            artMode.style.display = 'none';
-            emojiMode.style.display = 'block';
-            buildEmojiWaterfall();
-        } else {
-            artMode.style.display = 'block';
-            emojiMode.style.display = 'none';
-        }
-    }
-
-    // Hero 背景图
-    var heroImage = getCfg('heroImage', 'images/pixiv_hd_1.jpg');
-    var heroBg = document.getElementById('heroBg');
-    if (heroBg && heroImage) {
-        heroBg.style.backgroundImage = 'url(\'' + proxy(heroImage) + '\')';
-    }
-
-    // 画廊
-    renderGallery();
-
-    // 视频
-    renderVideos();
-
-    // 周边
-    renderGoods();
-
-    // Profile
-    renderProfile();
-
-    // Emoji waterfall（如果是 emoji 模式）
-    if (mode === 'emoji') {
-        buildEmojiWaterfall();
     }
 }
 
@@ -207,7 +160,7 @@ function renderGallery() {
     var images = getCfg('galleryImages', []);
     if (!images.length) return;
     grid.innerHTML = images.map(function(img) {
-        return '<div class="masonry-item' + (img.tall ? ' tall' : '') + '"><img src="' + proxy(img.src) + '" alt="" loading="lazy"></div>';
+        return '<div class="masonry-item' + (img.tall ? ' tall' : '') + '"><img src="' + imgUrl(img.src) + '" alt="" loading="lazy"></div>';
     }).join('');
 }
 
@@ -219,7 +172,7 @@ function renderVideos() {
     if (!videos.length) return;
     grid.innerHTML = videos.map(function(v) {
         return '<a href="' + (v.link || '#') + '" target="_blank" class="video-card">' +
-            '<div class="video-thumb"><img src="' + proxy(v.cover) + '" alt="">' +
+            '<div class="video-thumb"><img src="' + imgUrl(v.cover) + '" alt="">' +
             '<div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>' +
             '</div></a>';
     }).join('');
@@ -233,31 +186,36 @@ function renderGoods() {
     if (!goods.length) return;
     grid.innerHTML = goods.map(function(g) {
         return '<a href="' + (g.link || '#') + '" target="_blank" class="goods-card">' +
-            '<div class="goods-thumb"><img src="' + proxy(g.src) + '" alt=""></div></a>';
+            '<div class="goods-thumb"><img src="' + imgUrl(g.src) + '" alt=""></div></a>';
     }).join('');
 }
 
 // ===== 动态 Profile =====
 function renderProfile() {
     var profile = getCfg('profile', {});
-    if (!profile) return;
+    if (!getCfg('profileName') && !profile.name) return; // no profile data
 
-    var p = profile;
+    var name = getCfg('profileName') || profile.name || '';
+    var nameEn = getCfg('profileNameEn') || profile.nameEn || '';
+    var desc = getCfg('profileDesc') || profile.desc || '';
+    var tagline = getCfg('profileTagline') || profile.tagline || '';
+    var avatar = getCfg('profileAvatar') || profile.avatar || '';
+
     var h3 = document.querySelector('.profile-info h3');
     var sub = document.querySelector('.profile-info .profile-sub');
-    var desc = document.querySelector('.profile-info .profile-desc');
+    var descEl = document.querySelector('.profile-info .profile-desc');
     var table = document.querySelector('.profile-table');
 
-    if (h3 && p.name) h3.textContent = p.name;
-    if (sub && p.nameEn) sub.textContent = p.nameEn;
-    if (desc && p.desc) desc.textContent = p.desc;
+    if (h3 && name) h3.textContent = name;
+    if (sub) sub.textContent = tagline || nameEn;
+    if (descEl && desc) descEl.textContent = desc;
 
     var fieldMap = {
-        '生日': p.bday,
-        '种族': p.race,
-        '特征': p.trait,
-        '语言': p.lang,
-        '活动': p.activity,
+        '生日': getCfg('profileBday') || profile.bday,
+        '种族': getCfg('profileRace') || profile.race,
+        '特征': getCfg('profileTrait') || profile.trait,
+        '语言': getCfg('profileLang') || profile.lang,
+        '活动': getCfg('profileActivity') || profile.activity,
     };
 
     if (table) {
@@ -270,25 +228,54 @@ function renderProfile() {
         });
     }
 
-    // Avatar
-    if (p.avatar) {
+    if (avatar) {
         var avatarImg = document.querySelector('.profile-avatar img');
-        if (avatarImg) avatarImg.src = proxy(p.avatar);
-    }
-
-    // 从 profile 对象直接取所有字段（兼容简化格式）
-    if (table && p) {
-        table.querySelectorAll('tr').forEach(function(row) {
-            var th = row.querySelector('th');
-            var td = row.querySelector('td');
-            if (!th || !td) return;
-            var key = th.textContent.trim();
-            if (p[key]) td.textContent = p[key];
-        });
+        if (avatarImg) avatarImg.src = imgUrl(avatar);
     }
 }
 
-// ===== 首页模式切换（从设置页调用后，更新本地缓存不触发网络请求的场景） =====
+// ===== 应用所有配置 =====
+function applyAllConfig() {
+    // Theme
+    var theme = getCfg('theme', 'dark');
+    document.documentElement.setAttribute('data-theme', theme);
+
+    // Hero image
+    var heroImg = document.querySelector('.hero-img');
+    var heroImagePath = getCfg('heroImage', 'images/pixiv_hd_1.jpg');
+    if (heroImg) heroImg.src = imgUrl(heroImagePath);
+
+    // Home mode
+    var mode = getCfg('homeMode', 'art');
+    var artMode = document.querySelector('.hero-mode-art');
+    var emojiMode = document.querySelector('.hero-mode-emoji');
+    if (artMode && emojiMode) {
+        if (mode === 'emoji') {
+            artMode.style.display = 'none';
+            emojiMode.style.display = 'block';
+            buildEmojiWaterfall();
+        } else {
+            artMode.style.display = 'block';
+            emojiMode.style.display = 'none';
+        }
+    }
+
+    // Links
+    var linkMap = { bilibili: getCfg('linkBilibili'), twitter: getCfg('linkTwitter'), pixiv: getCfg('linkPixiv') };
+    var snsBtns = document.querySelectorAll('.nav-sns .sns-btn');
+    if (snsBtns.length >= 3) {
+        if (linkMap.bilibili) snsBtns[0].href = linkMap.bilibili;
+        if (linkMap.twitter) snsBtns[1].href = linkMap.twitter;
+        if (linkMap.pixiv) snsBtns[2].href = linkMap.pixiv;
+    }
+
+    renderGallery();
+    renderVideos();
+    renderGoods();
+    renderProfile();
+}
+
+// ===== 首页模式切换 =====
 function applyHomeMode(mode) {
     var artMode = document.querySelector('.hero-mode-art');
     var emojiMode = document.querySelector('.hero-mode-emoji');
@@ -302,13 +289,10 @@ function applyHomeMode(mode) {
             emojiMode.style.display = 'none';
         }
     }
-    setCfg('homeMode', mode);
+    localConfig.homeMode = mode;
 }
 
-function setCfg(key, val) { remoteConfig[key] = val; }
-
 // ===== GAMES =====
-// ===== 记忆翻牌游戏 =====
 function initMemoryGame(container) {
     container.style.display = 'block';
     var emojis = ['🌙','⭐','🎨','🐱','🌸','💜','🎀','✨'];
@@ -365,7 +349,6 @@ function initMemoryGame(container) {
     });
 }
 
-// ===== 接萝卜游戏 =====
 function initCatchGame(container) {
     container.style.display = 'block';
     var score = 0;
@@ -431,7 +414,6 @@ function initCatchGame(container) {
     spawnRadish();
 }
 
-// ===== 问题游戏 =====
 var questions = [
     { q: '绫月乃萝的生日是?', a: ['4月21日','4月15日','5月1日','3月21日'], correct: 0 },
     { q: '乃萝在B站的UID是?', a: ['86471108','12345678','87654321','86471109'], correct: 0 },
@@ -479,8 +461,17 @@ window.closeGame = function() {
     if (gc) { gc.style.display = 'none'; gc.innerHTML = ''; }
 };
 
+// ===== Game launcher =====
+window.loadGame = function(name) {
+    var container = document.getElementById('gameContainer');
+    if (!container) return;
+    if (name === 'memory') initMemoryGame(container);
+    else if (name === 'catch') initCatchGame(container);
+    else if (name === 'quiz') initQuizGame(container);
+};
+
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🌙 绫月乃萝 Fan Site loaded (v0.5)');
-    loadRemoteConfig();
+    console.log('🌙 绫月乃萝 Fan Site loaded (v0.6)');
+    loadConfig();
 });
