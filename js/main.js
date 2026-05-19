@@ -140,7 +140,7 @@ function buildEmojiWaterfall() {
         var doubled = shuffled.concat(shuffled);
         doubled.forEach(function(file) {
             var img = document.createElement('img');
-            img.src = cdn(EMOJI_DIR + file);
+            img.src = EMOJI_DIR + file;
             img.alt = '';
             img.loading = 'lazy';
             img.style.opacity = imgOpacity;
