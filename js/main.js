@@ -1,23 +1,21 @@
-// 绫月乃萝 Fan Site — main.js (v0.5 — 远程配置同步 + Worker图床)
+// 绫月乃萝 Fan Site — main.js (v0.5)
 
-// ===== 远程配置 API =====
+// Worker 图片代理
 var WORKER_URL = 'https://nora-cdn.warmrainday.workers.dev';
 var remoteConfig = {};
 
-/** 将本地路径转为 Worker /image 代理 URL */
-function cdn(path) {
-    if (!path) return '';
-    if (path.startsWith('http')) return path; // 已经是完整 URL
-    return WORKER_URL + '/image?path=' + encodeURIComponent(path);
+function proxy(p) {
+    if (!p) return '';
+    if (p.startsWith('http')) return p;
+    if (p.startsWith('noraemoji/')) return p;
+    return WORKER_URL + '/image?path=' + encodeURIComponent(p);
 }
 
 async function loadRemoteConfig() {
     try {
         var r = await fetch(WORKER_URL + '/config');
         if (r.ok) remoteConfig = await r.json();
-    } catch (e) {
-        console.warn('Failed to load remote config, using defaults');
-    }
+    } catch (e) {}
     applyAllConfig();
 }
 
@@ -25,7 +23,6 @@ function getCfg(key, def) {
     return remoteConfig[key] !== undefined ? remoteConfig[key] : def;
 }
 
-// ===== 主题 =====
 (function initTheme() {
     document.documentElement.setAttribute('data-theme', 'dark');
 })();
@@ -182,7 +179,7 @@ function applyAllConfig() {
     var heroImage = getCfg('heroImage', 'images/pixiv_hd_1.jpg');
     var heroBg = document.getElementById('heroBg');
     if (heroBg && heroImage) {
-        heroBg.style.backgroundImage = 'url(\'' + cdn(heroImage) + '\')';
+        heroBg.style.backgroundImage = 'url(\'' + proxy(heroImage) + '\')';
     }
 
     // 画廊
@@ -210,7 +207,7 @@ function renderGallery() {
     var images = getCfg('galleryImages', []);
     if (!images.length) return;
     grid.innerHTML = images.map(function(img) {
-        return '<div class="masonry-item' + (img.tall ? ' tall' : '') + '"><img src="' + cdn(img.src) + '" alt="" loading="lazy"></div>';
+        return '<div class="masonry-item' + (img.tall ? ' tall' : '') + '"><img src="' + proxy(img.src) + '" alt="" loading="lazy"></div>';
     }).join('');
 }
 
@@ -222,7 +219,7 @@ function renderVideos() {
     if (!videos.length) return;
     grid.innerHTML = videos.map(function(v) {
         return '<a href="' + (v.link || '#') + '" target="_blank" class="video-card">' +
-            '<div class="video-thumb"><img src="' + cdn(v.cover) + '" alt="">' +
+            '<div class="video-thumb"><img src="' + proxy(v.cover) + '" alt="">' +
             '<div class="play-overlay"><svg width="48" height="48" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></div>' +
             '</div></a>';
     }).join('');
@@ -236,7 +233,7 @@ function renderGoods() {
     if (!goods.length) return;
     grid.innerHTML = goods.map(function(g) {
         return '<a href="' + (g.link || '#') + '" target="_blank" class="goods-card">' +
-            '<div class="goods-thumb"><img src="' + cdn(g.src) + '" alt=""></div></a>';
+            '<div class="goods-thumb"><img src="' + proxy(g.src) + '" alt=""></div></a>';
     }).join('');
 }
 
@@ -276,7 +273,7 @@ function renderProfile() {
     // Avatar
     if (p.avatar) {
         var avatarImg = document.querySelector('.profile-avatar img');
-        if (avatarImg) avatarImg.src = cdn(p.avatar);
+        if (avatarImg) avatarImg.src = proxy(p.avatar);
     }
 
     // 从 profile 对象直接取所有字段（兼容简化格式）

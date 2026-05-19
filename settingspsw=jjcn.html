@@ -317,11 +317,11 @@
         // ===== 远程配置 API =====
         const WORKER_URL = 'https://nora-cdn.warmrainday.workers.dev';
 
-        /** 将本地路径转为 Worker /image 代理 URL */
-        function cdn(path) {
-            if (!path) return '';
-            if (path.startsWith('http')) return path;
-            return WORKER_URL + '/image?path=' + encodeURIComponent(path);
+        function proxy(p) {
+            if (!p) return '';
+            if (p.startsWith('http')) return p;
+            if (p.startsWith('noraemoji/')) return p;
+            return WORKER_URL + '/image?path=' + encodeURIComponent(p);
         }
 
         let remoteConfig = {};
@@ -396,7 +396,7 @@
                 var div = document.createElement('div');
                 div.className = 'img-option' + (img.src === saved ? ' selected' : '');
                 div.onclick = function() { selectHeroImage(img.src); };
-                div.innerHTML = '<img src="' + cdn(img.src) + '" alt="">';
+                div.innerHTML = '<img src="' + proxy(img.src) + '" alt="">';
                 grid.appendChild(div);
             });
         }
@@ -514,7 +514,7 @@
             if (!list) return;
             list.innerHTML = getGalleryImages().map(function(g, i) {
                 return '<div class="gallery-img-row">' +
-                    '<div class="thumb"><img src="' + cdn(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<div class="thumb"><img src="' + proxy(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
                     '<input type="text" value="' + g.src.replace(/"/g,'&quot;') + '" oninput="updateGallerySrc(' + i + ',this.value)" style="flex:1">' +
                     '<button class="btn btn-sm btn-danger" onclick="removeGalleryItem(' + i + ')">✕</button>' +
                     '</div>';
@@ -553,7 +553,7 @@
             if (!list) return;
             list.innerHTML = getVideoList().map(function(v, i) {
                 return '<div class="gallery-img-row">' +
-                    '<div class="thumb"><img src="' + cdn(v.cover) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<div class="thumb"><img src="' + proxy(v.cover) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
                     '<input type="text" value="' + v.cover.replace(/"/g,'&quot;') + '" oninput="updateVideoCover(' + i + ',this.value)" style="flex:1" placeholder="封面图URL">' +
                     '<input type="text" value="' + (v.link||'').replace(/"/g,'&quot;') + '" oninput="updateVideoLink(' + i + ',this.value)" style="flex:1" placeholder="B站BV号或链接">' +
                     '<button class="btn btn-sm btn-danger" onclick="removeVideoItem(' + i + ')">✕</button>' +
@@ -593,7 +593,7 @@
             if (!list) return;
             list.innerHTML = getGoods().map(function(g, i) {
                 return '<div class="gallery-img-row">' +
-                    '<div class="thumb"><img src="' + cdn(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
+                    '<div class="thumb"><img src="' + proxy(g.src) + '" alt="" onerror="this.style.display=\'none\'"></div>' +
                     '<input type="text" value="' + g.src.replace(/"/g,'&quot;') + '" oninput="updateGoodsSrc(' + i + ',this.value)" style="flex:1">' +
                     '<input type="text" value="' + (g.link||'').replace(/"/g,'&quot;') + '" oninput="updateGoodsLink(' + i + ',this.value)" style="flex:1">' +
                     '<button class="btn btn-sm btn-danger" onclick="removeGoodsItem(' + i + ')">✕</button>' +
