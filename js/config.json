@@ -1,7 +1,7 @@
 {
   "theme": "dark",
   "homeMode": "art",
-  "heroImage": "images/pixiv_hd_2.jpg",
+  "heroImage": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_2.jpg",
   "linkBilibili": "https://space.bilibili.com/86471108",
   "linkTwitter": "https://twitter.com/Ayatsuki_Nora",
   "linkPixiv": "https://www.pixiv.net/users/36966416",
@@ -14,32 +14,32 @@
   "profileLang": "中文 / 日本語",
   "profileActivity": "Bilibili / Twitter / Pixiv",
   "profileDesc": "あやつき/Ayatsuki Nora。猫猫画师，偶尔直播。",
-  "profileAvatar": "images/avatar.jpg",
+  "profileAvatar": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/avatar.jpg",
   "galleryCols": 3,
   "galleryGap": 10,
   "galleryImages": [
-    { "src": "images/pixiv_hd_2.jpg" },
-    { "src": "images/pixiv_hd_3.jpg" },
-    { "src": "images/pixiv_hd_4.jpg" },
-    { "src": "images/pixiv_hd_5.jpg" },
-    { "src": "images/pixiv_hd_6.jpg" },
-    { "src": "images/work1.jpg" },
-    { "src": "images/work2.jpg" },
-    { "src": "images/work3.jpg" },
-    { "src": "images/uploads/test_nora_1.png" },
-    { "src": "images/uploads/test_nora_2.png" }
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_2.jpg" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_3.jpg" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_4.jpg" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_5.jpg" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/pixiv_hd_6.jpg" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/work1.jpg" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/work2.jpg" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/work3.jpg" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/uploads/test_nora_1.png" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/uploads/test_nora_2.png" }
   ],
   "videoList": [
-    { "cover": "images/vid_1.jpg", "link": "https://www.bilibili.com/video/BV1xx" },
-    { "cover": "images/vid_2.jpg", "link": "https://www.bilibili.com/video/BV1xx" },
-    { "cover": "images/vid_3.jpg", "link": "https://www.bilibili.com/video/BV1xx" },
-    { "cover": "images/vid_4.jpg", "link": "https://www.bilibili.com/video/BV1xx" }
+    { "cover": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/vid_1.jpg", "link": "https://www.bilibili.com/video/BV1xx" },
+    { "cover": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/vid_2.jpg", "link": "https://www.bilibili.com/video/BV1xx" },
+    { "cover": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/vid_3.jpg", "link": "https://www.bilibili.com/video/BV1xx" },
+    { "cover": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/vid_4.jpg", "link": "https://www.bilibili.com/video/BV1xx" }
   ],
   "goods": [
-    { "src": "images/uploads/goods_1.jpg", "link": "#" },
-    { "src": "images/uploads/goods_2.jpg", "link": "#" },
-    { "src": "images/uploads/goods_3.jpg", "link": "#" },
-    { "src": "images/uploads/goods_4.jpg", "link": "#" }
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/uploads/goods_1.jpg", "link": "#" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/uploads/goods_2.jpg", "link": "#" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/uploads/goods_3.jpg", "link": "#" },
+    { "src": "https://raw.githubusercontent.com/warmrainday-tech/noranoraJJCN/main/images/uploads/goods_4.jpg", "link": "#" }
   ],
   "emojiCols": 12,
   "emojiSpeed": 30,
